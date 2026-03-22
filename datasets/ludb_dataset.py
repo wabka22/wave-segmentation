@@ -19,11 +19,11 @@ class LUDBDataset(Dataset):
             record = wfdb.rdrecord(os.path.join(path, rec))
             ann = wfdb.rdann(os.path.join(path, rec), "ii")
 
-            signal = record.p_signal[:,1]
+            signal = record.p_signal.T
 
             signal = (signal - signal.mean()) / signal.std()
-            signal = bandpass_filter(signal)
-            mask = create_mask(len(signal), ann)
+            signal = np.array([bandpass_filter(ch) for ch in signal])
+            mask = create_mask(signal.shape[1], ann)
 
             xs, ys = split_windows(signal, mask)
 
@@ -33,7 +33,6 @@ class LUDBDataset(Dataset):
         self.X = torch.from_numpy(np.array(self.X)).float()
         self.Y = torch.from_numpy(np.array(self.Y)).long()
 
-        self.X = self.X.unsqueeze(1)
 
     def __len__(self):
         return len(self.X)

@@ -21,11 +21,11 @@ class ConvBlock(nn.Module):
 
 class UNet1D(nn.Module):
 
-    def __init__(self, classes=4):
+    def __init__(self, classes=4, in_channels=12):
 
         super().__init__()
 
-        self.enc1 = ConvBlock(1,32)
+        self.enc1 = ConvBlock(in_channels, 32)
         self.pool1 = nn.MaxPool1d(2)
 
         self.enc2 = ConvBlock(32,64)

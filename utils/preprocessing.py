@@ -45,8 +45,10 @@ def split_windows(signal, mask, augment=True):
     X = []
     Y = []
 
-    for i in range(0, len(signal) - WINDOW, STEP):
-        win = signal[i:i+WINDOW].copy()
+    length = signal.shape[1]
+
+    for i in range(0, length - WINDOW + 1, STEP):
+        win = signal[:, i:i+WINDOW]
         label = mask[i:i+WINDOW]
 
         win = (win - win.mean()) / (win.std() + 1e-8)
@@ -59,4 +61,3 @@ def split_windows(signal, mask, augment=True):
         Y.append(label)
 
     return X, Y
-
