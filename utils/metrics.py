@@ -17,8 +17,8 @@ def evaluate(model, loader, device):
 
             p = model(x).argmax(1).cpu()
 
-            preds.extend(p.numpy().flatten())
-            trues.extend(y.numpy().flatten())
+            preds.extend(p.cpu().numpy().flatten())
+            trues.extend(y.cpu().numpy().flatten())
 
     f1 = f1_score(trues, preds, average=None)
 
