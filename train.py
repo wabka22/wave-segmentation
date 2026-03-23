@@ -28,7 +28,7 @@ def dice_loss(pred, target, smooth=1e-6):
 
 
 def main():
-    records = [str(i) for i in range(1,201)]
+    records = [str(i) for i in range(1, 201)]
     train = records[:160]
     test = records[160:]
 
@@ -40,7 +40,7 @@ def main():
         batch_size=config.BATCH_SIZE,
         shuffle=True,
         num_workers=4,
-        pin_memory=True
+        pin_memory=True,
     )
 
     test_loader = DataLoader(
@@ -48,7 +48,7 @@ def main():
         batch_size=config.BATCH_SIZE,
         shuffle=False,
         num_workers=4,
-        pin_memory=True
+        pin_memory=True,
     )
 
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
@@ -61,7 +61,6 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     scaler = torch.amp.GradScaler("cuda")
-    
 
     for epoch in range(config.EPOCHS):
         model.train()
@@ -78,10 +77,7 @@ def main():
 
                 dice = dice_loss(pred, y)
 
-                ce = criterion(
-                    pred.permute(0,2,1).reshape(-1,4),
-                    y.reshape(-1)
-                )
+                ce = criterion(pred.permute(0, 2, 1).reshape(-1, 4), y.reshape(-1))
 
                 loss = ce + 0.5 * dice
 

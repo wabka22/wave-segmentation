@@ -6,3 +6,5 @@ scikit-learn
 tqdm
 pandas
 scipy
+black
+ruff

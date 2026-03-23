@@ -7,15 +7,14 @@ from torch.utils.data import Dataset
 from utils.preprocessing import create_mask, split_windows
 from utils.preprocessing import bandpass_filter
 
-class LUDBDataset(Dataset):
 
+class LUDBDataset(Dataset):
     def __init__(self, path, records):
 
         self.X = []
         self.Y = []
 
         for rec in records:
-
             record = wfdb.rdrecord(os.path.join(path, rec))
             ann = wfdb.rdann(os.path.join(path, rec), "ii")
 
@@ -32,7 +31,6 @@ class LUDBDataset(Dataset):
 
         self.X = torch.from_numpy(np.array(self.X)).float()
         self.Y = torch.from_numpy(np.array(self.Y)).long()
-
 
     def __len__(self):
         return len(self.X)
