@@ -9,14 +9,16 @@ from utils.preprocessing import bandpass_filter
 
 
 class LUDBDataset(Dataset):
+    
     def __init__(self, path, records):
 
-        self.X = []
-        self.Y = []
+        self.X = [] # окна сигналов
+        self.Y = [] # маски окон 
 
-        for rec in records:
+        for rec in records: 
             record = wfdb.rdrecord(os.path.join(path, rec))
-            ann = wfdb.rdann(os.path.join(path, rec), "ii")
+            # Аннотация - разметка
+            ann = wfdb.rdann(os.path.join(path, rec), "ii") 
 
             signal = record.p_signal.T
 

@@ -12,14 +12,15 @@ cudnn.benchmark = True
 
 
 def dice_loss(pred, target, smooth=1e-6):
-    num_classes = pred.shape[1]
+    num_classes = pred.shape[1] # 4 класса
 
-    pred = F.softmax(pred, dim=1)
+    pred = F.softmax(pred, dim=1) # вероятности
     target_onehot = F.one_hot(target, num_classes).permute(0, 2, 1).float()
 
-    intersection = (pred * target_onehot).sum(dim=2)
+    intersection = (pred * target_onehot).sum(dim=2) # пересечение
     union = pred.sum(dim=2) + target_onehot.sum(dim=2)
 
+    # Dice = 2 * |A ∩ B| / (|A| + |B|)
     dice = (2 * intersection + smooth) / (union + smooth)
 
     dice = dice[:, 1:]
@@ -28,13 +29,14 @@ def dice_loss(pred, target, smooth=1e-6):
 
 
 def main():
+    # ПОДГОТОВКА ДАННЫХ
     records = [str(i) for i in range(1, 201)]
     train = records[:160]
     test = records[160:]
 
     train_dataset = LUDBDataset(config.DATA_PATH, train)
     test_dataset = LUDBDataset(config.DATA_PATH, test)
-
+    # СОЗДАНИЕ ЗАГРУЗЧИКОВ ДАННЫХ
     train_loader = DataLoader(
         train_dataset,
         batch_size=config.BATCH_SIZE,
@@ -50,7 +52,7 @@ def main():
         num_workers=4,
         pin_memory=True,
     )
-
+    #  НАСТРОЙКА МОДЕЛИ И КОМПОНЕНТОВ
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
 
     model = UNet1D().to(device)
@@ -61,17 +63,18 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     scaler = torch.amp.GradScaler("cuda")
-
+    #  ЦИКЛ ОБУЧЕНИЯ
     for epoch in range(config.EPOCHS):
-        model.train()
+        model.train()  # режим обучения
         loss_sum = 0
 
         for x, y in tqdm(train_loader):
+            #  Перемещаем данные на GPU
             x = x.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
 
-            optimizer.zero_grad()
-
+            optimizer.zero_grad()  #  Обнуляем градиенты
+            # Forward pass (mixed precision)
             with torch.amp.autocast("cuda"):
                 pred = model(x)
 
@@ -80,7 +83,7 @@ def main():
                 ce = criterion(pred.permute(0, 2, 1).reshape(-1, 4), y.reshape(-1))
 
                 loss = ce + 0.5 * dice
-
+            # Backward pass
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()

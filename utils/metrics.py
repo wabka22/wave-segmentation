@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.metrics import f1_score
 
 
-# --- NEW: segment utils ---
 def mask_to_segments(mask, cls):
     segments = []
     in_seg = False
@@ -117,8 +116,8 @@ def evaluate(model, loader, device, min_seg_len=10):
     with torch.no_grad():
         for x, y in loader:
             x = x.to(device)
-            p = model(x).argmax(1).cpu().numpy()
-            y = y.cpu().numpy()
+            p = model(x).argmax(1).cpu().numpy() # Предсказания модели
+            y = y.cpu().numpy() # Истинные метки
 
             # пост-обработка сегментов
             for i in range(p.shape[0]):

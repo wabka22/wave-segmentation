@@ -7,9 +7,11 @@ class ConvBlock(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
+            # Первая свертка
             nn.Conv1d(in_c, out_c, 3, padding=1),
             nn.BatchNorm1d(out_c),
             nn.ReLU(),
+            # Вторая свертка
             nn.Conv1d(out_c, out_c, 3, padding=1),
             nn.BatchNorm1d(out_c),
             nn.ReLU(),

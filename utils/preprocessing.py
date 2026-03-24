@@ -35,7 +35,7 @@ def bandpass_filter(signal, fs=500):
     low = 0.5 / (fs / 2)
     high = 40 / (fs / 2)
 
-    b, a = butter(4, [low, high], btype="band")
+    b, a = butter(4, [low, high], btype="band") #полосовой фильтр
     return filtfilt(b, a, signal)
 
 
@@ -73,3 +73,15 @@ def split_windows(signal, mask, augment=True, device="cpu"):
         Y.append(torch.from_numpy(label).long())
 
     return X, Y
+
+# Сигнал: |-------|-------|-------|-------|-------|
+#         0      500     1000    1500    2000    2500
+
+# Окно 1: [=======]
+#          0-999
+
+# Окно 2:     [=======]
+#            500-1499
+
+# Окно 3:         [=======]
+#               1000-1999
