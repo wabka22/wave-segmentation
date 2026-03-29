@@ -5,7 +5,7 @@ import numpy as np
 
 from torch.utils.data import Dataset
 from utils.preprocessing import create_mask, split_windows
-from utils.preprocessing import bandpass_filter
+from utils.preprocessing import bandpass_filter, bandpass_filter_gpu
 
 
 class LUDBDataset(Dataset):
@@ -22,8 +22,13 @@ class LUDBDataset(Dataset):
 
             signal = record.p_signal.T
 
+            signal = torch.from_numpy(signal).float()   # ← перевод в torch
+
             signal = (signal - signal.mean()) / signal.std()
-            signal = np.array([bandpass_filter(ch) for ch in signal])
+
+            signal = bandpass_filter_gpu(signal)        # ← сразу весь батч каналов
+
+            signal = signal.numpy()                     # ← обратно в numpy (если нужно)
             mask = create_mask(signal.shape[1], ann)
 
             xs, ys = split_windows(signal, mask)

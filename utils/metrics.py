@@ -141,3 +141,5 @@ def evaluate(model, loader, device, min_seg_len=10):
     print("F1 P:", np.mean(seg_f1_scores[1]))
     print("F1 QRS:", np.mean(seg_f1_scores[2]))
     print("F1 T:", np.mean(seg_f1_scores[3]))
+    
+    return seg_f1_scores

@@ -22,7 +22,7 @@ def dice_loss(pred, target, smooth=1e-6):
 
     dice = (2 * intersection + smooth) / (union + smooth)
 
-    dice = dice[:, 1:]  # убираем background
+    dice = dice[:, 1:]
 
     return 1 - dice.mean()
 
@@ -80,12 +80,15 @@ def main():
 
                 dice = dice_loss(pred, y)
 
-                ce = criterion(
-                    pred.permute(0, 2, 1).reshape(-1, 4),
-                    y.reshape(-1)
-                )
+                logits = pred.permute(0, 2, 1).reshape(-1, 4)
+                targets = y.reshape(-1)
 
-                loss = 0.7 * ce + 0.3 * dice
+                ce = F.cross_entropy(logits, targets, weight=weights, reduction='none')
+
+                pt = torch.exp(-ce)
+                focal = ((1 - pt) ** 2 * ce).mean()
+
+                loss = 0.5 * focal + 0.5 * dice
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -93,7 +96,7 @@ def main():
 
             # накопление
             loss_sum += loss.item()
-            ce_sum += ce.item()
+            ce_sum += ce.mean().item()
             dice_sum += dice.item()
 
         avg_loss = loss_sum / len(train_loader)
