@@ -1,24 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 
 def plot_ecg(signal, pred, true=None):
-    """
-    signal: (L,)
-    pred: (L,)
-    true: (L,) or None
-    """
-
     signal = signal.squeeze()
 
     plt.figure(figsize=(15, 5))
     plt.plot(signal, label="ECG", color="black")
 
     colors = {
-        1: "blue",   # P
-        2: "red",    # QRS
-        3: "green"   # T
+        1: "blue",
+        2: "red",
+        3: "green",
     }
 
     for cls in [1, 2, 3]:
@@ -30,7 +23,7 @@ def plot_ecg(signal, pred, true=None):
             where=mask,
             color=colors[cls],
             alpha=0.2,
-            label=f"Pred {cls}"
+            label=f"Pred {cls}",
         )
 
     if true is not None:
@@ -43,10 +36,11 @@ def plot_ecg(signal, pred, true=None):
                 where=mask,
                 color=colors[cls],
                 alpha=0.1,
-                hatch='//',
-                label=f"True {cls}"
+                hatch="//",
+                label=f"True {cls}",
             )
 
     plt.legend(loc="upper right")
-    plt.title("ECG segmentation")
+    plt.title("ECG segmentation (Pred vs True)")
+    plt.tight_layout()
     plt.show()

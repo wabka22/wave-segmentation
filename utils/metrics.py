@@ -22,7 +22,7 @@ def mask_to_segments(mask, cls):
     return segments
 
 
-def iou(seg1, seg2):
+def iou(seg1, seg2):#Intersection over Union
     s1, e1 = seg1
     s2, e2 = seg2
 
@@ -32,7 +32,8 @@ def iou(seg1, seg2):
     return inter / union if union > 0 else 0
 
 
-def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10):
+def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10): #How many segments matched
+
     matched = 0
     used = set()
 

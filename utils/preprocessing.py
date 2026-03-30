@@ -31,14 +31,6 @@ def create_mask(length, ann):
     return mask
 
 
-def bandpass_filter(signal, fs=500):
-    low = 0.5 / (fs / 2)
-    high = 40 / (fs / 2)
-
-    b, a = butter(4, [low, high], btype="band") #полосовой фильтр
-    return filtfilt(b, a, signal)
-
-
 def bandpass_filter_gpu(signal, fs=500, lowcut=0.5, highcut=40.0):
     fft = torch.fft.rfft(signal, dim=1)
     freqs = torch.fft.rfftfreq(signal.shape[1], d=1 / fs).to(signal.device)
