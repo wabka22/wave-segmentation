@@ -22,18 +22,17 @@ def mask_to_segments(mask, cls):
     return segments
 
 
-def iou(seg1, seg2):#Intersection over Union
+def iou(seg1, seg2):
     s1, e1 = seg1
     s2, e2 = seg2
 
     inter = max(0, min(e1, e2) - max(s1, s2))
     union = (e1 - s1) + (e2 - s2) - inter
 
-    return inter / union if union > 0 else 0
+    return inter / union if union > 0 else 0.0
 
 
-def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10): #How many segments matched
-
+def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10):
     matched = 0
     used = set()
 
@@ -42,7 +41,6 @@ def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10): #How many segment
             if i in used:
                 continue
 
-            # overlap OR tolerance
             overlap = not (p[1] < t[0] - tol or t[1] < p[0] - tol)
 
             if overlap or iou(p, t) > iou_thr:
@@ -84,26 +82,25 @@ def merge_small_segments(mask, min_len=10):
             start = i
             in_seg = True
             cls = val
-
         elif in_seg and val != cls:
             end = i
 
             if end - start < min_len:
                 if segments:
-                    segments[-1] = (segments[-1][0], end)
+                    segments[-1] = (segments[-1][0], end, segments[-1][2])
                 else:
-                    segments.append((start, end))
+                    segments.append((start, end, cls))
             else:
-                segments.append((start, end))
+                segments.append((start, end, cls))
 
             in_seg = False
 
     if in_seg:
-        segments.append((start, len(mask)))
+        segments.append((start, len(mask), cls))
 
     new_mask = np.zeros_like(mask)
-    for s, e in segments:
-        new_mask[s:e] = mask[s]
+    for s, e, cls in segments:
+        new_mask[s:e] = cls
 
     return new_mask
 
@@ -112,35 +109,43 @@ def evaluate(model, loader, device, min_seg_len=10):
     model.eval()
 
     preds, trues = [], []
-    seg_f1_scores = {1: [], 2: [], 3: []}
+    seg_f1_scores = {1: [], 2: []}  # 1=QRS, 2=SPIKES
 
     with torch.no_grad():
         for x, y in loader:
             x = x.to(device)
-            p = model(x).argmax(1).cpu().numpy() # Предсказания модели
-            y = y.cpu().numpy() # Истинные метки
 
-            # пост-обработка сегментов
+            p = model(x).argmax(1).cpu().numpy()
+            y = y.cpu().numpy()
+
             for i in range(p.shape[0]):
                 p[i] = merge_small_segments(p[i], min_len=min_seg_len)
                 y[i] = merge_small_segments(y[i], min_len=min_seg_len)
 
-                for cls in [1, 2, 3]:
+                for cls in [1, 2]:
                     seg_f1_scores[cls].append(segment_f1(p[i], y[i], cls))
 
             preds.extend(p.flatten())
             trues.extend(y.flatten())
 
-    f1 = f1_score(trues, preds, average=None)
+    preds = np.array(preds)
+    trues = np.array(trues)
+
+    f1 = f1_score(
+        trues,
+        preds,
+        labels=[0, 1, 2],
+        average=None,
+        zero_division=0,
+    )
 
     print("\n--- Point-wise F1 ---")
-    print("F1 P:", f1[1])
-    print("F1 QRS:", f1[2])
-    print("F1 T:", f1[3])
+    print("F1 background:", f1[0])
+    print("F1 QRS:", f1[1])
+    print("F1 SPIKES:", f1[2])
 
     print("\n--- Segment F1 (post-processed) ---")
-    print("F1 P:", np.mean(seg_f1_scores[1]))
-    print("F1 QRS:", np.mean(seg_f1_scores[2]))
-    print("F1 T:", np.mean(seg_f1_scores[3]))
-    
+    print("F1 QRS:", np.mean(seg_f1_scores[1]) if len(seg_f1_scores[1]) > 0 else 0.0)
+    print("F1 SPIKES:", np.mean(seg_f1_scores[2]) if len(seg_f1_scores[2]) > 0 else 0.0)
+
     return seg_f1_scores

@@ -31,13 +31,13 @@ def create_mask(length, ann):
     return mask
 
 
-def bandpass_filter_gpu(signal, fs=500, lowcut=0.5, highcut=40.0):
-    fft = torch.fft.rfft(signal, dim=1)
-    freqs = torch.fft.rfftfreq(signal.shape[1], d=1 / fs).to(signal.device)
-    mask = (freqs >= lowcut) & (freqs <= highcut)
-    fft = fft * mask
-    filtered = torch.fft.irfft(fft, n=signal.shape[1], dim=1)
-    return filtered
+# def bandpass_filter_gpu(signal, fs=500, lowcut=0.5, highcut=40.0):
+#     fft = torch.fft.rfft(signal, dim=1)
+#     freqs = torch.fft.rfftfreq(signal.shape[1], d=1 / fs).to(signal.device)
+#     mask = (freqs >= lowcut) & (freqs <= highcut)
+#     fft = fft * mask
+#     filtered = torch.fft.irfft(fft, n=signal.shape[1], dim=1)
+#     return filtered
 
 
 def split_windows(signal, mask, augment=True, device="cpu"):
@@ -45,7 +45,6 @@ def split_windows(signal, mask, augment=True, device="cpu"):
         signal = torch.from_numpy(signal).float()
     signal = signal.to(device)
 
-    signal = bandpass_filter_gpu(signal)
     signal = (signal - signal.mean(dim=1, keepdim=True)) / (
         signal.std(dim=1, keepdim=True) + 1e-8
     )
