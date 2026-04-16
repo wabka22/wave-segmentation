@@ -23,6 +23,8 @@ def set_seed(seed=42):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def dice_loss(pred, target, smooth=1e-6):
@@ -107,12 +109,9 @@ def create_loaders():
     if len(file_ids) == 0:
         raise ValueError("Не найдено ни одной пары .npy + .json")
 
-    train_ids, val_ids, test_ids = split_file_ids(
-        file_ids=file_ids,
-        train_ratio=config.TRAIN_RATIO,
-        val_ratio=config.VAL_RATIO,
-        seed=config.SEED,
-    )
+    train_ids = config.TRAIN_IDS
+    val_ids = config.VAL_IDS
+    test_ids = config.TEST_IDS
 
     print("Found files:", file_ids)
     print("Train ids:", train_ids)
@@ -228,8 +227,7 @@ def main():
 
     model = UNet1D(classes=3, in_channels=12).to(device)
     
-    weights = torch.tensor([0.05, 0.55, 0.40], dtype=torch.float32, device=device)
-
+    weights = torch.tensor([0.03, 0.48, 0.49], dtype=torch.float32, device=device)      
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 

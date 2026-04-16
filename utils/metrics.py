@@ -69,7 +69,7 @@ def segment_f1(pred_mask, true_mask, cls):
     return 2 * precision * recall / (precision + recall + 1e-6)
 
 
-def merge_small_segments(mask, min_len=10):
+def merge_small_segments(mask, min_len=4):
     mask = mask.copy() if isinstance(mask, np.ndarray) else mask.cpu().numpy()
 
     segments = []

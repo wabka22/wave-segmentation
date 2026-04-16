@@ -75,8 +75,8 @@ class ECGDataset(Dataset):
                 )
 
             labels = remap_labels(labels)
-            target = labels[self.label_channel]  # [L]
-
+            target = labels[self.label_channel]
+            target = self.expand_segments(target, cls=2, radius=4)
             xs, ys = self._split_windows(signal, target)
             self.X.extend(xs)
             self.Y.extend(ys)
@@ -106,6 +106,33 @@ class ECGDataset(Dataset):
             ys.append(torch.from_numpy(y_win.copy()))
 
         return xs, ys
+    
+    def expand_segments(self,mask: np.ndarray, cls: int, radius: int) -> np.ndarray:
+        mask = mask.copy()
+        idx = np.where(mask == cls)[0]
+
+        if len(idx) == 0:
+            return mask
+
+        start = idx[0]
+        prev = idx[0]
+
+        segments = []
+
+        for i in idx[1:]:
+            if i != prev + 1:
+                segments.append((start, prev + 1))
+                start = i
+            prev = i
+
+        segments.append((start, prev + 1))
+
+        for s, e in segments:
+            new_s = max(0, s - radius)
+            new_e = min(len(mask), e + radius)
+            mask[new_s:new_e] = np.where(mask[new_s:new_e] == 0, cls, mask[new_s:new_e])
+
+        return mask
 
     def __len__(self):
         return len(self.X)
