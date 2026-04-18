@@ -109,9 +109,12 @@ def create_loaders():
     if len(file_ids) == 0:
         raise ValueError("Не найдено ни одной пары .npy + .json")
 
-    train_ids = config.TRAIN_IDS
-    val_ids = config.VAL_IDS
-    test_ids = config.TEST_IDS
+    train_ids, val_ids, test_ids = split_file_ids(
+        file_ids=file_ids,
+        train_ratio=config.TRAIN_RATIO,
+        val_ratio=config.VAL_RATIO,
+        seed=config.SEED,
+    )
 
     print("Found files:", file_ids)
     print("Train ids:", train_ids)
@@ -149,26 +152,9 @@ def create_loaders():
     print(f"Val windows:   {len(val_dataset)}")
     print(f"Test windows:  {len(test_dataset)}")
 
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=config.BATCH_SIZE,
-        shuffle=True,
-        num_workers=0,
-    )
-
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=config.BATCH_SIZE,
-        shuffle=False,
-        num_workers=0,
-    )
-
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=config.BATCH_SIZE,
-        shuffle=False,
-        num_workers=0,
-    )
+    train_loader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=0)
+    test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=0)
 
     return train_loader, val_loader, test_loader
 

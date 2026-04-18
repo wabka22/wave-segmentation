@@ -15,3 +15,7 @@ SEED = 42
 TRAIN_IDS = ["0", "4", "3", "6", "9", "14", "17", "13"]
 VAL_IDS = ["16"]
 TEST_IDS = ["8", "1", "5"]
+
+TRAIN_RATIO = 0.7
+VAL_RATIO = 0.15
+TEST_RATIO = 0.15
