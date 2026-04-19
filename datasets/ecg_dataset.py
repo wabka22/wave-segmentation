@@ -76,7 +76,7 @@ class ECGDataset(Dataset):
 
             labels = remap_labels(labels)
             target = labels[self.label_channel]
-            target = self.expand_segments(target, cls=2, radius=4)
+            target = self.expand_segments(target, cls=2, radius=1)
             xs, ys = self._split_windows(signal, target)
             self.X.extend(xs)
             self.Y.extend(ys)

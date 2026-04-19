@@ -1,47 +1,51 @@
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
+import json
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
 import config
-from models.unet1d import UNet1D
 from ecg_signal_processor import load_signal
+from models.unet1d import UNet1D
 
 
-def merge_small_segments(mask: np.ndarray, min_len: int = 4) -> np.ndarray:
+def clip_long_segments(mask: np.ndarray, max_len: int = 60) -> np.ndarray:
     mask = mask.copy()
+    start = None
+    current = 0
 
-    segments = []
-    in_seg = False
-    start = 0
-    cls = 0
-
-    for i, val in enumerate(mask):
-        if val != 0 and not in_seg:
+    for i in range(len(mask)):
+        if mask[i] != 0 and start is None:
             start = i
-            in_seg = True
-            cls = val
-        elif in_seg and val != cls:
-            end = i
+            current = mask[i]
+        elif start is not None and mask[i] != current:
+            if i - start > max_len:
+                mask[start:i] = 0
+            start = None
 
-            if end - start < min_len:
-                if segments:
-                    segments[-1] = (segments[-1][0], end, segments[-1][2])
-                else:
-                    segments.append((start, end, cls))
-            else:
-                segments.append((start, end, cls))
+    if start is not None and len(mask) - start > max_len:
+        mask[start:len(mask)] = 0
 
-            in_seg = False
+    return mask
 
-    if in_seg:
-        segments.append((start, len(mask), cls))
 
-    new_mask = np.zeros_like(mask)
-    for s, e, cls in segments:
-        new_mask[s:e] = cls
+def remove_small_segments(mask: np.ndarray, cls: int, min_len: int) -> np.ndarray:
+    mask = mask.copy()
+    start = None
 
-    return new_mask
+    for i in range(len(mask)):
+        if mask[i] == cls and start is None:
+            start = i
+        elif mask[i] != cls and start is not None:
+            if i - start < min_len:
+                mask[start:i] = 0
+            start = None
+
+    if start is not None and len(mask) - start < min_len:
+        mask[start:len(mask)] = 0
+
+    return mask
 
 
 def find_unlabeled_signal(signal_dir: str | Path, markup_dir: str | Path) -> Path | None:
@@ -69,7 +73,6 @@ def predict_full_signal_probs(
     signal: [C, L]
     return: probs_avg [classes, L]
     """
-
     signal = signal.astype(np.float32)
     length = signal.shape[1]
 
@@ -81,10 +84,10 @@ def predict_full_signal_probs(
             end = start + window
 
             x_win = signal[:, start:end]
-            x_tensor = torch.from_numpy(x_win).float().unsqueeze(0).to(device)  # [1, C, W]
+            x_tensor = torch.from_numpy(x_win).float().unsqueeze(0).to(device)
 
-            logits = model(x_tensor)  # [1, classes, W]
-            probs = torch.softmax(logits, dim=1).cpu().numpy()[0]  # [classes, W]
+            logits = model(x_tensor)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()[0]
 
             if scores_sum is None:
                 num_classes = probs.shape[0]
@@ -93,7 +96,6 @@ def predict_full_signal_probs(
             scores_sum[:, start:end] += probs
             counts[start:end] += 1
 
-        # хвост
         if np.any(counts == 0):
             last_start = max(0, length - window)
             last_end = length
@@ -118,29 +120,92 @@ def predict_full_signal_probs(
 
 def probs_to_mask(
     probs_avg: np.ndarray,
-    qrs_thr: float = 0.20,
-    spikes_thr: float = 0.10,
-    apply_merge: bool = True,
-    min_len: int = 4,
+    spikes_thr: float = 0.75,
 ) -> np.ndarray:
-    """
-    classes:
-    0 = background
-    1 = QRS
-    2 = SPIKES
-    """
-    qrs_prob = probs_avg[1]
+    pred_mask = probs_avg.argmax(axis=0).astype(np.int32)
+
     spikes_prob = probs_avg[2]
-
-    pred_mask = np.zeros(qrs_prob.shape[0], dtype=np.int32)
-
-    pred_mask[qrs_prob >= qrs_thr] = 1
-    pred_mask[spikes_prob >= spikes_thr] = 2  # SPIKES приоритетнее
-
-    if apply_merge:
-        pred_mask = merge_small_segments(pred_mask, min_len=min_len)
+    pred_mask[(pred_mask == 2) & (spikes_prob < spikes_thr)] = 0
 
     return pred_mask
+
+
+def mask_to_segments_full(mask: np.ndarray, channel: int) -> list[dict]:
+    segments = []
+    start = None
+    current_cls = 0
+
+    for i, val in enumerate(mask):
+        val = int(val)
+
+        if val != 0 and start is None:
+            start = i
+            current_cls = val
+
+        elif start is not None and val != current_cls:
+            segments.append(
+                {
+                    "Channel": int(channel),
+                    "Type": int(current_cls - 1),  # 1->0(QRS), 2->1(SPIKES)
+                    "StartMark": int(start),
+                    "EndMark": int(i - 1),
+                    "SegmentationAgent": 1,
+                    "ComplexMark": None,
+                }
+            )
+
+            start = None
+            current_cls = 0
+
+            if val != 0:
+                start = i
+                current_cls = val
+
+    if start is not None:
+        segments.append(
+            {
+                "Channel": int(channel),
+                "Type": int(current_cls - 1),
+                "StartMark": int(start),
+                "EndMark": int(len(mask) - 1),
+                "SegmentationAgent": 1,
+                "ComplexMark": None,
+            }
+        )
+
+    return segments
+
+
+def save_prediction_full_json(
+    pred_mask: np.ndarray,
+    signal: np.ndarray,
+    signal_path: str | Path,
+    output_dir: str | Path,
+    label_channel: int,
+    sample_rate: int = 500,
+) -> Path:
+    signal_path = Path(signal_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_path = output_dir / f"{signal_path.stem}.json"
+
+    n_channels = signal.shape[0]
+    all_channels = [[] for _ in range(n_channels)]
+    all_channels[label_channel] = mask_to_segments_full(pred_mask, label_channel)
+
+    markup = {
+        "SignalName": signal_path.name,
+        "SampleRate": int(sample_rate),
+        "SignalFileSize": int(signal.size),
+        "UsedModel": "UNet1D",
+        "Segments": all_channels,
+    }
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(markup, f, ensure_ascii=False, indent=2)
+
+    return output_path
 
 
 def plot_all_in_one(
@@ -157,7 +222,7 @@ def plot_all_in_one(
 
     plt.plot(sig, label="ECG signal", linewidth=1, color="black")
 
-    scale = np.max(np.abs(sig)) * 0.5
+    scale = np.max(np.abs(sig)) * 0.5 if np.max(np.abs(sig)) > 0 else 1.0
     plt.plot(qrs_prob * scale, label="QRS prob", color="red", alpha=0.7)
     plt.plot(spikes_prob * scale, label="SPIKES prob", color="orange", alpha=0.7)
 
@@ -199,23 +264,6 @@ def plot_all_in_one(
     plt.grid()
     plt.show()
 
-def clip_long_segments(mask, max_len=50):
-    mask = mask.copy()
-    current = 0
-    start = None
-
-    for i in range(len(mask)):
-        if mask[i] != 0 and start is None:
-            start = i
-            current = mask[i]
-
-        elif mask[i] != current and start is not None:
-            if i - start > max_len:
-                mask[start:i] = 0
-            start = None
-
-    return mask
-
 
 def main():
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
@@ -224,9 +272,11 @@ def main():
     model.load_state_dict(torch.load("checkpoints/best_model.pth", map_location=device))
     model.eval()
 
-    signal_path = find_unlabeled_signal(config.SIGNAL_DIR, config.MARKUP_DIR)
-    if signal_path is None:
-        raise ValueError("Не найден ни один неразмеченный .npy файл.")
+    signal_path = Path(config.SIGNAL_DIR) / "40.npy"
+    # signal_path = find_unlabeled_signal(config.SIGNAL_DIR, config.MARKUP_DIR)
+
+    if signal_path is None or not signal_path.exists():
+        raise ValueError(f"Не найден файл сигнала: {signal_path}")
 
     print("Using unlabeled signal:", signal_path)
 
@@ -242,21 +292,30 @@ def main():
 
     pred_mask = probs_to_mask(
         probs_avg,
-        qrs_thr=0.30,
-        spikes_thr=0.50,
-        apply_merge=True,
-        min_len=4,
+        spikes_thr=0.65,
     )
-    
-    pred_mask = clip_long_segments(pred_mask, max_len=80)
 
+    pred_mask = remove_small_segments(pred_mask, cls=1, min_len=12)  # QRS
+    pred_mask = remove_small_segments(pred_mask, cls=2, min_len=8)   # SPIKES
+    pred_mask = clip_long_segments(pred_mask, max_len=60)
+
+    output_json = save_prediction_full_json(
+        pred_mask=pred_mask,
+        signal=signal,
+        signal_path=signal_path,
+        output_dir="data/prediction_markin",
+        label_channel=config.LABEL_CHANNEL,
+        sample_rate=500,
+    )
+
+    print("Saved JSON to:", output_json)
     print("Unique predicted classes:", np.unique(pred_mask))
     print("Mean QRS prob:", probs_avg[1].mean())
     print("Mean SPIKES prob:", probs_avg[2].mean())
     print("Max QRS prob:", probs_avg[1].max())
     print("Max SPIKES prob:", probs_avg[2].max())
 
-    plot_all_in_one(signal, probs_avg, pred_mask, channel=0)
+    plot_all_in_one(signal, probs_avg, pred_mask, channel=config.LABEL_CHANNEL)
 
 
 if __name__ == "__main__":
