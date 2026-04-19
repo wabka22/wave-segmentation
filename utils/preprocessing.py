@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from config import WINDOW, STEP
-from scipy.signal import butter, filtfilt
 
 
 def create_mask(length, ann):
@@ -29,16 +28,6 @@ def create_mask(length, ann):
                 mask[start:end] = current_class
 
     return mask
-
-
-# def bandpass_filter_gpu(signal, fs=500, lowcut=0.5, highcut=40.0):
-#     fft = torch.fft.rfft(signal, dim=1)
-#     freqs = torch.fft.rfftfreq(signal.shape[1], d=1 / fs).to(signal.device)
-#     mask = (freqs >= lowcut) & (freqs <= highcut)
-#     fft = fft * mask
-#     filtered = torch.fft.irfft(fft, n=signal.shape[1], dim=1)
-#     return filtered
-
 
 def split_windows(signal, mask, augment=True, device="cpu"):
     if not isinstance(signal, torch.Tensor):
