@@ -36,7 +36,7 @@ class ECGDataset(Dataset):
         signal_dir: str | Path,
         markup_dir: str | Path,
         file_ids: list[str],
-        label_channel: int = 0,
+        target_channels: list[int] | None = None,
         background_value: int = -1,
         window: int | None = None,
         step: int | None = None,
@@ -44,13 +44,16 @@ class ECGDataset(Dataset):
         self.signal_dir = Path(signal_dir)
         self.markup_dir = Path(markup_dir)
         self.file_ids = file_ids
-        self.label_channel = label_channel
+        self.target_channels = (
+            target_channels if target_channels is not None else config.TARGET_CHANNELS
+        )
         self.background_value = background_value
         self.window = window if window is not None else config.WINDOW
         self.step = step if step is not None else config.STEP
 
         self.X = []
         self.Y = []
+        self.meta = []  # file_id, channel
 
         for file_id in self.file_ids:
             signal_path = self.signal_dir / f"{file_id}.npy"
@@ -68,23 +71,27 @@ class ECGDataset(Dataset):
             if signal.ndim != 2 or labels.ndim != 2:
                 continue
 
-            if self.label_channel >= labels.shape[0]:
-                raise ValueError(
-                    f"label_channel={self.label_channel} вне диапазона. "
-                    f"Число каналов разметки: {labels.shape[0]}"
-                )
-
             labels = remap_labels(labels)
-            target = labels[self.label_channel]
-            target = self.expand_segments(target, cls=2, radius=1)
-            xs, ys = self._split_windows(signal, target)
-            self.X.extend(xs)
-            self.Y.extend(ys)
+
+            n_channels = labels.shape[0]
+            valid_channels = [ch for ch in self.target_channels if 0 <= ch < n_channels]
+
+            for ch in valid_channels:
+                target = labels[ch]
+
+                # если хочешь оставить расширение SPIKES, оставь эту строку
+                target = self.expand_segments(target, cls=2, radius=1)
+
+                xs, ys = self._split_windows(signal, target)
+
+                self.X.extend(xs)
+                self.Y.extend(ys)
+                self.meta.extend([(file_id, ch)] * len(xs))
 
         if len(self.X) == 0:
-            raise ValueError("Dataset is empty. Проверь пути, разметку и параметры окна.")
+            raise ValueError("Dataset is empty. Проверь пути, разметку и target_channels.")
 
-        self.X = torch.stack(self.X).float()   # [N, C, W]
+        self.X = torch.stack(self.X).float()   # [N, 12, W]
         self.Y = torch.stack(self.Y).long()    # [N, W]
 
     def _split_windows(self, signal: np.ndarray, target: np.ndarray):
@@ -106,8 +113,8 @@ class ECGDataset(Dataset):
             ys.append(torch.from_numpy(y_win.copy()))
 
         return xs, ys
-    
-    def expand_segments(self,mask: np.ndarray, cls: int, radius: int) -> np.ndarray:
+
+    def expand_segments(self, mask: np.ndarray, cls: int, radius: int) -> np.ndarray:
         mask = mask.copy()
         idx = np.where(mask == cls)[0]
 
@@ -116,7 +123,6 @@ class ECGDataset(Dataset):
 
         start = idx[0]
         prev = idx[0]
-
         segments = []
 
         for i in idx[1:]:

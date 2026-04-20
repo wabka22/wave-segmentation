@@ -1,21 +1,21 @@
 import os
+import random
 from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-import random
-
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import config
 from datasets.ecg_dataset import ECGDataset
 from models.unet1d import UNet1D
 from utils.metrics import evaluate
-import config
 
 cudnn.benchmark = True
+
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -119,12 +119,13 @@ def create_loaders():
     print("Train ids:", train_ids)
     print("Val ids:", val_ids)
     print("Test ids:", test_ids)
+    print("Target channels:", config.TARGET_CHANNELS)
 
     train_dataset = ECGDataset(
         signal_dir=config.SIGNAL_DIR,
         markup_dir=config.MARKUP_DIR,
         file_ids=train_ids,
-        label_channel=config.LABEL_CHANNEL,
+        target_channels=config.TARGET_CHANNELS,
         window=config.WINDOW,
         step=config.STEP,
     )
@@ -133,7 +134,7 @@ def create_loaders():
         signal_dir=config.SIGNAL_DIR,
         markup_dir=config.MARKUP_DIR,
         file_ids=val_ids,
-        label_channel=config.LABEL_CHANNEL,
+        target_channels=config.TARGET_CHANNELS,
         window=config.WINDOW,
         step=config.STEP,
     )
@@ -142,7 +143,7 @@ def create_loaders():
         signal_dir=config.SIGNAL_DIR,
         markup_dir=config.MARKUP_DIR,
         file_ids=test_ids,
-        label_channel=config.LABEL_CHANNEL,
+        target_channels=config.TARGET_CHANNELS,
         window=config.WINDOW,
         step=config.STEP,
     )
@@ -151,9 +152,24 @@ def create_loaders():
     print(f"Val windows:   {len(val_dataset)}")
     print(f"Test windows:  {len(test_dataset)}")
 
-    train_loader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=0)
-    test_loader = DataLoader(test_dataset, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=0)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=config.BATCH_SIZE,
+        shuffle=True,
+        num_workers=0,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=config.BATCH_SIZE,
+        shuffle=False,
+        num_workers=0,
+    )
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=config.BATCH_SIZE,
+        shuffle=False,
+        num_workers=0,
+    )
 
     return train_loader, val_loader, test_loader
 
@@ -202,6 +218,7 @@ def validate(model, loader, device):
         "val_mean_seg_f1": val_mean_seg_f1,
     }
 
+
 def main():
     os.makedirs("checkpoints", exist_ok=True)
 
@@ -211,7 +228,7 @@ def main():
     use_amp = device == "cuda"
 
     model = UNet1D(classes=3, in_channels=12).to(device)
-    
+
     weights = torch.tensor([0.03, 0.48, 0.49], dtype=torch.float32, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)

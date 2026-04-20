@@ -19,3 +19,6 @@ TEST_IDS = ["8", "1", "5"]
 TRAIN_RATIO = 0.7
 VAL_RATIO = 0.15
 TEST_RATIO = 0.15
+
+
+TARGET_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
