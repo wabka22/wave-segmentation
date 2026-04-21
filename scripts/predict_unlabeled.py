@@ -290,7 +290,7 @@ def main():
     model.load_state_dict(torch.load("checkpoints/best_model.pth", map_location=device))
     model.eval()
 
-    signal_path = Path(config.SIGNAL_DIR) / "38.npy"
+    signal_path = Path(config.SIGNAL_DIR) / "42.npy"
 
     if not signal_path.exists():
         raise ValueError(f"Не найден файл сигнала: {signal_path}")

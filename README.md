@@ -1,22 +1,71 @@
-# ECG Wave Segmentation using U-Net
+# ECG Signal Segmentation using 1D U-Net
 
-This project implements a deep learning pipeline for **ECG waveform segmentation** (P wave, QRS complex, and T wave) using a **1D U-Net architecture** in PyTorch.
+This project implements a deep learning pipeline for ECG signal segmentation using a 1D U-Net architecture in PyTorch.
 
-The model is trained on the LUDB dataset and performs semantic segmentation of ECG signals.
+The model is designed to detect:
+- QRS complexes
+- Spikes (artifacts / peaks)
+
+The pipeline supports multi-channel ECG signals (up to 12 channels) and includes training, evaluation, inference, and JSON markup generation.
 
 ## Features
 
-- ECG signal preprocessing
-- Bandpass filtering (0.5–40 Hz)
+- Multi-channel ECG processing
 - Sliding window segmentation
-- 1D U-Net architecture
-- Dice + CrossEntropy loss
-- Evaluation using F1 score for P, QRS, and T waves
+- Signal normalization
+- Threshold-based decoding
+- Postprocessing of segments
+- JSON output compatible with training markup
+- Visualization of signal, probabilities, and predictions
 
 ## Dataset
 
-This project uses the **LUDB (Lobachevsky University Database)** ECG dataset.
+The project uses custom ECG data in the following format:
 
-Dataset link: https://physionet.org/content/ludb/1.0.1/
+data/
+├── signals/
+│   ├── 1.npy
+│   ├── 2.npy
+│   └── ...
+├── markup/
+│   ├── 1.json
+│   ├── 2.json
+│   └── ...
 
-After downloading, place the dataset in the following directory: `data/ludb/data/`
+### Signal format
+- .npy
+- shape: [channels, samples]
+
+### Markup format
+
+{
+  "Segments": [
+    [
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 100,
+        "EndMark": 150
+      }
+    ]
+  ]
+}
+
+Where:
+- Type = 0 → QRS
+- Type = 1 → SPIKES
+
+
+## Inference
+
+Run prediction:
+```bash
+python -m scripts.predict_unlabeled
+```
+## Output
+
+data/prediction_markin/<file_id>.json
+
+## Configuration
+
+Main parameters are defined in config.py
