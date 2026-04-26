@@ -11,8 +11,6 @@ env/
 *.pt
 *.pth
 
-data/
-
 *.log
 
 .vscode/

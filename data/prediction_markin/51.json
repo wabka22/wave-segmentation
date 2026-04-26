@@ -1,0 +1,2320 @@
+{
+  "SignalName": "51.npy",
+  "SampleRate": 500,
+  "SignalFileSize": 60000,
+  "UsedModel": "UNet1D_channel_emphasis",
+  "Segments": [
+    [
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 36,
+        "EndMark": 51,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 52,
+        "EndMark": 54,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 441,
+        "EndMark": 462,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 533,
+        "EndMark": 557,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 558,
+        "EndMark": 571,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 1033,
+        "EndMark": 1057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 1058,
+        "EndMark": 1070,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 1533,
+        "EndMark": 1558,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 1559,
+        "EndMark": 1563,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 2035,
+        "EndMark": 2057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 2058,
+        "EndMark": 2063,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 2441,
+        "EndMark": 2467,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 2469,
+        "EndMark": 2470,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 2533,
+        "EndMark": 2558,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 2559,
+        "EndMark": 2565,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 2572,
+        "EndMark": 2579,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 3033,
+        "EndMark": 3056,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 3057,
+        "EndMark": 3068,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 3070,
+        "EndMark": 3082,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 3426,
+        "EndMark": 3437,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 3454,
+        "EndMark": 3459,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 3841,
+        "EndMark": 3871,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 3937,
+        "EndMark": 3960,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 3961,
+        "EndMark": 3986,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 4341,
+        "EndMark": 4371,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 4437,
+        "EndMark": 4460,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 4461,
+        "EndMark": 4484,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 1,
+        "StartMark": 4842,
+        "EndMark": 4870,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 4871,
+        "EndMark": 4871,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 0,
+        "Type": 0,
+        "StartMark": 4950,
+        "EndMark": 4999,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 1,
+        "Type": 0,
+        "StartMark": 568,
+        "EndMark": 571,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 1,
+        "Type": 0,
+        "StartMark": 1070,
+        "EndMark": 1073,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 1,
+        "Type": 0,
+        "StartMark": 1570,
+        "EndMark": 1573,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 1,
+        "Type": 0,
+        "StartMark": 2070,
+        "EndMark": 2070,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 34,
+        "EndMark": 49,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 50,
+        "EndMark": 56,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 443,
+        "EndMark": 461,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 462,
+        "EndMark": 462,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 535,
+        "EndMark": 553,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 554,
+        "EndMark": 556,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 562,
+        "EndMark": 562,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 1035,
+        "EndMark": 1053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 1054,
+        "EndMark": 1056,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 1535,
+        "EndMark": 1553,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 1554,
+        "EndMark": 1556,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 2033,
+        "EndMark": 2053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 2054,
+        "EndMark": 2056,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 2435,
+        "EndMark": 2461,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 2462,
+        "EndMark": 2463,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 2533,
+        "EndMark": 2553,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 2554,
+        "EndMark": 2555,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 2562,
+        "EndMark": 2562,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 3035,
+        "EndMark": 3053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 3054,
+        "EndMark": 3055,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 3848,
+        "EndMark": 3869,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 3939,
+        "EndMark": 3957,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 3958,
+        "EndMark": 3959,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 4349,
+        "EndMark": 4369,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 4440,
+        "EndMark": 4457,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 0,
+        "StartMark": 4458,
+        "EndMark": 4459,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 2,
+        "Type": 1,
+        "StartMark": 4849,
+        "EndMark": 4869,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 441,
+        "EndMark": 455,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 1042,
+        "EndMark": 1057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 1532,
+        "EndMark": 1559,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 2033,
+        "EndMark": 2059,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 2443,
+        "EndMark": 2462,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 2533,
+        "EndMark": 2558,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 2559,
+        "EndMark": 2559,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 3038,
+        "EndMark": 3050,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 3051,
+        "EndMark": 3063,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 3427,
+        "EndMark": 3437,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 3850,
+        "EndMark": 3862,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 3942,
+        "EndMark": 3954,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 3955,
+        "EndMark": 3978,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 4350,
+        "EndMark": 4361,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 4437,
+        "EndMark": 4454,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 4455,
+        "EndMark": 4480,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 1,
+        "StartMark": 4850,
+        "EndMark": 4862,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 4948,
+        "EndMark": 4958,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 3,
+        "Type": 0,
+        "StartMark": 4963,
+        "EndMark": 4991,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 27,
+        "EndMark": 55,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 437,
+        "EndMark": 471,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 528,
+        "EndMark": 561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 562,
+        "EndMark": 563,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 1028,
+        "EndMark": 1061,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 1062,
+        "EndMark": 1064,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 1532,
+        "EndMark": 1561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 1562,
+        "EndMark": 1565,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 2032,
+        "EndMark": 2060,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 2061,
+        "EndMark": 2065,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 2440,
+        "EndMark": 2469,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 2470,
+        "EndMark": 2474,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 2531,
+        "EndMark": 2559,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 2560,
+        "EndMark": 2565,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 2939,
+        "EndMark": 2952,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 3031,
+        "EndMark": 3058,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 3059,
+        "EndMark": 3066,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 3847,
+        "EndMark": 3875,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 3876,
+        "EndMark": 3879,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 3936,
+        "EndMark": 3962,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 3963,
+        "EndMark": 3969,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 4347,
+        "EndMark": 4374,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 4375,
+        "EndMark": 4378,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 4436,
+        "EndMark": 4463,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 4464,
+        "EndMark": 4471,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 1,
+        "StartMark": 4847,
+        "EndMark": 4873,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 4,
+        "Type": 0,
+        "StartMark": 4874,
+        "EndMark": 4879,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 34,
+        "EndMark": 35,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 42,
+        "EndMark": 42,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 46,
+        "EndMark": 55,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 442,
+        "EndMark": 461,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 534,
+        "EndMark": 549,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 1034,
+        "EndMark": 1049,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 1534,
+        "EndMark": 1552,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 2034,
+        "EndMark": 2054,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 2435,
+        "EndMark": 2461,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 2462,
+        "EndMark": 2463,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 2535,
+        "EndMark": 2554,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 3027,
+        "EndMark": 3046,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 3047,
+        "EndMark": 3053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 3848,
+        "EndMark": 3863,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 3931,
+        "EndMark": 3952,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 3953,
+        "EndMark": 3958,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 4348,
+        "EndMark": 4363,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 4431,
+        "EndMark": 4453,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 0,
+        "StartMark": 4454,
+        "EndMark": 4455,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 5,
+        "Type": 1,
+        "StartMark": 4848,
+        "EndMark": 4865,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 6,
+        "Type": 0,
+        "StartMark": 1554,
+        "EndMark": 1557,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 6,
+        "Type": 0,
+        "StartMark": 2054,
+        "EndMark": 2057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 6,
+        "Type": 0,
+        "StartMark": 3956,
+        "EndMark": 3959,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 27,
+        "EndMark": 48,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 49,
+        "EndMark": 55,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 435,
+        "EndMark": 459,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 460,
+        "EndMark": 465,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 467,
+        "EndMark": 472,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 527,
+        "EndMark": 556,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 557,
+        "EndMark": 563,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 1027,
+        "EndMark": 1055,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 1056,
+        "EndMark": 1058,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 1061,
+        "EndMark": 1061,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 1529,
+        "EndMark": 1554,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 1555,
+        "EndMark": 1557,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 1561,
+        "EndMark": 1561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 2028,
+        "EndMark": 2053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 2054,
+        "EndMark": 2062,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 2435,
+        "EndMark": 2457,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 2458,
+        "EndMark": 2472,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 2527,
+        "EndMark": 2554,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 2555,
+        "EndMark": 2562,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 3027,
+        "EndMark": 3050,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 3051,
+        "EndMark": 3057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 3060,
+        "EndMark": 3062,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 3839,
+        "EndMark": 3864,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 3865,
+        "EndMark": 3867,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 3935,
+        "EndMark": 3953,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 3954,
+        "EndMark": 3966,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 3985,
+        "EndMark": 3985,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 4343,
+        "EndMark": 4344,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 4345,
+        "EndMark": 4363,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 4364,
+        "EndMark": 4368,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 4434,
+        "EndMark": 4453,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 4454,
+        "EndMark": 4467,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 1,
+        "StartMark": 4839,
+        "EndMark": 4865,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 4866,
+        "EndMark": 4869,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 7,
+        "Type": 0,
+        "StartMark": 4874,
+        "EndMark": 4874,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 31,
+        "EndMark": 47,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 48,
+        "EndMark": 61,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 435,
+        "EndMark": 456,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 551,
+        "EndMark": 561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 562,
+        "EndMark": 573,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 578,
+        "EndMark": 578,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 1052,
+        "EndMark": 1064,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 1078,
+        "EndMark": 1078,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 1553,
+        "EndMark": 1553,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 1554,
+        "EndMark": 1566,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 2054,
+        "EndMark": 2065,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 2440,
+        "EndMark": 2441,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 2442,
+        "EndMark": 2457,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 2553,
+        "EndMark": 2555,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 2556,
+        "EndMark": 2565,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 2566,
+        "EndMark": 2570,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3053,
+        "EndMark": 3057,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3065,
+        "EndMark": 3071,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3426,
+        "EndMark": 3427,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3434,
+        "EndMark": 3434,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3439,
+        "EndMark": 3443,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3448,
+        "EndMark": 3462,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 3839,
+        "EndMark": 3863,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3958,
+        "EndMark": 3961,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 3968,
+        "EndMark": 3984,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 4339,
+        "EndMark": 4363,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 4465,
+        "EndMark": 4467,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 4472,
+        "EndMark": 4480,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 4839,
+        "EndMark": 4863,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 1,
+        "StartMark": 4961,
+        "EndMark": 4969,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 4970,
+        "EndMark": 4972,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 8,
+        "Type": 0,
+        "StartMark": 4974,
+        "EndMark": 4974,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 30,
+        "EndMark": 37,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 38,
+        "EndMark": 49,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 50,
+        "EndMark": 53,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 540,
+        "EndMark": 549,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 550,
+        "EndMark": 560,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 561,
+        "EndMark": 573,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 574,
+        "EndMark": 576,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 1039,
+        "EndMark": 1049,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 1050,
+        "EndMark": 1061,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 1062,
+        "EndMark": 1074,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 1075,
+        "EndMark": 1075,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 1542,
+        "EndMark": 1553,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 1554,
+        "EndMark": 1561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 1562,
+        "EndMark": 1570,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 1571,
+        "EndMark": 1575,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 2040,
+        "EndMark": 2052,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 2053,
+        "EndMark": 2064,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 2065,
+        "EndMark": 2074,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 2075,
+        "EndMark": 2077,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 2540,
+        "EndMark": 2552,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 2553,
+        "EndMark": 2565,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 2566,
+        "EndMark": 2573,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 2574,
+        "EndMark": 2577,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 3031,
+        "EndMark": 3053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3054,
+        "EndMark": 3065,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3070,
+        "EndMark": 3070,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3075,
+        "EndMark": 3078,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3422,
+        "EndMark": 3443,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3445,
+        "EndMark": 3445,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 3446,
+        "EndMark": 3453,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3454,
+        "EndMark": 3455,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3936,
+        "EndMark": 3936,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3938,
+        "EndMark": 3938,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 3939,
+        "EndMark": 3958,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3959,
+        "EndMark": 3970,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 3971,
+        "EndMark": 3980,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 3981,
+        "EndMark": 3983,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 1,
+        "StartMark": 4444,
+        "EndMark": 4456,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 4457,
+        "EndMark": 4482,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 9,
+        "Type": 0,
+        "StartMark": 4947,
+        "EndMark": 4984,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 29,
+        "EndMark": 31,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 52,
+        "EndMark": 59,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 544,
+        "EndMark": 551,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 574,
+        "EndMark": 574,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 1043,
+        "EndMark": 1053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 1074,
+        "EndMark": 1074,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 1076,
+        "EndMark": 1078,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 1543,
+        "EndMark": 1551,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 1552,
+        "EndMark": 1554,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 2039,
+        "EndMark": 2053,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 2054,
+        "EndMark": 2056,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 2539,
+        "EndMark": 2549,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 2550,
+        "EndMark": 2555,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3046,
+        "EndMark": 3046,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3053,
+        "EndMark": 3056,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 3423,
+        "EndMark": 3435,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3436,
+        "EndMark": 3436,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3950,
+        "EndMark": 3952,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3958,
+        "EndMark": 3965,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 3980,
+        "EndMark": 3985,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4358,
+        "EndMark": 4358,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4449,
+        "EndMark": 4450,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 4451,
+        "EndMark": 4462,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4463,
+        "EndMark": 4466,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4476,
+        "EndMark": 4476,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4480,
+        "EndMark": 4484,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4948,
+        "EndMark": 4948,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 1,
+        "StartMark": 4949,
+        "EndMark": 4963,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4964,
+        "EndMark": 4964,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 10,
+        "Type": 0,
+        "StartMark": 4981,
+        "EndMark": 4983,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ],
+    [
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 27,
+        "EndMark": 49,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 50,
+        "EndMark": 56,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 542,
+        "EndMark": 554,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 555,
+        "EndMark": 561,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 1042,
+        "EndMark": 1055,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 1056,
+        "EndMark": 1063,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 1542,
+        "EndMark": 1555,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 1556,
+        "EndMark": 1563,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 2039,
+        "EndMark": 2055,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 2056,
+        "EndMark": 2064,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 2540,
+        "EndMark": 2555,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 2556,
+        "EndMark": 2563,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 3039,
+        "EndMark": 3049,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 3050,
+        "EndMark": 3063,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 3942,
+        "EndMark": 3953,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 3954,
+        "EndMark": 3969,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 1,
+        "StartMark": 4442,
+        "EndMark": 4451,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 4452,
+        "EndMark": 4471,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      },
+      {
+        "Channel": 11,
+        "Type": 0,
+        "StartMark": 4960,
+        "EndMark": 4970,
+        "SegmentationAgent": 1,
+        "ComplexMark": null
+      }
+    ]
+  ]
+}

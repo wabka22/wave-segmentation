@@ -106,8 +106,10 @@ def predict_full_signal_probs(
 
 def probs_to_mask(
     probs_avg: np.ndarray,
-    qrs_thr: float = 0.2,
-    spikes_thr: float = 0.6,
+    qrs_thr: float = 0.25,
+    spikes_thr: float = 0.65,
+    qrs_margin_over_bg: float = -0.05,
+    spikes_margin_over_qrs: float = 0.05,
 ) -> np.ndarray:
     bg_prob = probs_avg[0]
     qrs_prob = probs_avg[1]
@@ -115,13 +117,15 @@ def probs_to_mask(
 
     pred_mask = np.zeros(qrs_prob.shape[0], dtype=np.int32)
 
-    pred_mask[qrs_prob > bg_prob] = 1
+    qrs_idx = (qrs_prob >= qrs_thr) & (qrs_prob >= bg_prob + qrs_margin_over_bg)
+    pred_mask[qrs_idx] = 1
 
-    pred_mask[
-        (spikes_prob > qrs_prob + 0.05) &
+    spikes_idx = (
+        (spikes_prob >= spikes_thr) &
         (spikes_prob > bg_prob) &
-        (spikes_prob > spikes_thr)
-    ] = 2
+        (spikes_prob > qrs_prob + spikes_margin_over_qrs)
+    )
+    pred_mask[spikes_idx] = 2
 
     return pred_mask
 
@@ -290,7 +294,7 @@ def main():
     model.load_state_dict(torch.load("checkpoints/best_model.pth", map_location=device))
     model.eval()
 
-    signal_path = Path(config.SIGNAL_DIR) / "42.npy"
+    signal_path = Path(config.SIGNAL_DIR) / "51.npy"
 
     if not signal_path.exists():
         raise ValueError(f"Не найден файл сигнала: {signal_path}")
@@ -306,7 +310,7 @@ def main():
     debug_mask = None
 
     for ch in range(n_channels):
-        signal_ch = build_channel_emphasis_input(signal, ch, other_scale=0.2)
+        signal_ch = build_channel_emphasis_input(signal, ch, other_scale=0.1)
 
         probs_avg = predict_full_signal_probs(
             model=model,
@@ -318,8 +322,10 @@ def main():
 
         pred_mask = probs_to_mask(
             probs_avg,
-            qrs_thr=0.25,
+            qrs_thr=0.20,
             spikes_thr=0.65,
+            qrs_margin_over_bg=-0.05,
+            spikes_margin_over_qrs=0.05,
         )
 
         pred_mask = postprocess_mask(pred_mask)

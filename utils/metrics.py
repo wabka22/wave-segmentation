@@ -105,7 +105,7 @@ def merge_small_segments(mask, min_len=4):
     return new_mask
 
 
-def evaluate(model, loader, device, min_seg_len=10):
+def evaluate(model, loader, device, min_seg_len=4):
     model.eval()
 
     preds, trues = [], []
@@ -119,14 +119,19 @@ def evaluate(model, loader, device, min_seg_len=10):
             y = y.cpu().numpy()
 
             for i in range(p.shape[0]):
-                p[i] = merge_small_segments(p[i], min_len=min_seg_len)
-                y[i] = merge_small_segments(y[i], min_len=min_seg_len)
+                pred_mask = p[i].copy()
+                true_mask = y[i].copy()
+
+                # постобрабатываем только prediction
+                pred_mask = merge_small_segments(pred_mask, min_len=min_seg_len)
 
                 for cls in [1, 2]:
-                    seg_f1_scores[cls].append(segment_f1(p[i], y[i], cls))
+                    seg_f1_scores[cls].append(
+                        segment_f1(pred_mask, true_mask, cls)
+                    )
 
-            preds.extend(p.flatten())
-            trues.extend(y.flatten())
+                preds.extend(pred_mask.flatten())
+                trues.extend(true_mask.flatten())
 
     preds = np.array(preds)
     trues = np.array(trues)

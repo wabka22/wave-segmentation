@@ -79,8 +79,8 @@ class ECGDataset(Dataset):
             for ch in valid_channels:
                 target = labels[ch]
 
-                # если хочешь оставить расширение SPIKES, оставь эту строку
-                target = self.expand_segments(target, cls=2, radius=1)
+                target = self.expand_segments(target, cls=1, radius=2)  # QRS
+                target = self.expand_segments(target, cls=2, radius=1)  # SPIKES
 
                 xs, ys = self._split_windows(signal, target)
 
