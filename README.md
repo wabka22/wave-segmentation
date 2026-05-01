@@ -1,71 +1,132 @@
 # ECG Signal Segmentation using 1D U-Net
 
-This project implements a deep learning pipeline for ECG signal segmentation using a 1D U-Net architecture in PyTorch.
+Проект реализует пайплайн сегментации ЭКГ-сигналов с использованием 1D U-Net на PyTorch.
 
-The model is designed to detect:
-- QRS complexes
-- Spikes (artifacts / peaks)
+Модель работает с многоканальными ЭКГ-сигналами и предназначена для поиска следующих сегментов:
 
-The pipeline supports multi-channel ECG signals (up to 12 channels) and includes training, evaluation, inference, and JSON markup generation.
+- обычный QRS;
+- SPIKES;
+- QRS после SPIKE.
 
-## Features
+## Возможности
 
-- Multi-channel ECG processing
-- Sliding window segmentation
-- Signal normalization
-- Threshold-based decoding
-- Postprocessing of segments
-- JSON output compatible with training markup
-- Visualization of signal, probabilities, and predictions
+- обработка ЭКГ-сигналов до 12 каналов;
+- обучение 1D U-Net;
+- работа со скользящими окнами;
+- нормализация сигнала;
+- поддержка разметки в JSON и масок в `.npy`;
+- постобработка найденных сегментов;
+- сохранение результата в JSON;
+- визуализация сигнала, вероятностей и предсказанных сегментов.
 
-## Dataset
+## Структура проекта
 
-The project uses custom ECG data in the following format:
+```text
+wave-segmentation/
+├── checkpoints/              # сохранённые модели
+├── data/                     # данные
+│   ├── data_with_spikes/     # сигналы и JSON-разметка со SPIKES/QRS_AFTER_SPIKE
+│   ├── segmentation/         # сигналы и npy-маски с QRS
+│   └── segmentation_kvachadze_npy/
+├── datasets/                 # Dataset для обучения
+├── ecg_signal_processor/     # загрузка сигналов и JSON-разметки
+├── models/                   # архитектура UNet1D
+├── scripts/                  # обучение, экспорт и инференс
+├── utils/                    # метрики и вспомогательные функции
+├── config.py                 # основные параметры
+└── tox.ini                   # запуск Ruff через tox
+```
 
-data/
-├── signals/
-│   ├── 1.npy
-│   ├── 2.npy
-│   └── ...
-├── markup/
-│   ├── 1.json
-│   ├── 2.json
-│   └── ...
+## Классы модели
 
-### Signal format
-- .npy
-- shape: [channels, samples]
+Внутри модели используется единая схема классов:
 
-### Markup format
+```text
+0 -> background
+1 -> QRS
+2 -> SPIKES
+3 -> QRS_AFTER_SPIKE
+```
 
-{
-  "Segments": [
-    [
-      {
-        "Channel": 0,
-        "Type": 0,
-        "StartMark": 100,
-        "EndMark": 150
-      }
-    ]
-  ]
-}
+Для JSON-разметки и `.npy`-масок классы преобразуются в `datasets/ecg_dataset.py`.
 
-Where:
-- Type = 0 → QRS
-- Type = 1 → SPIKES
+## Настройки
 
+Основные параметры находятся в `config.py`:
 
-## Inference
+```python
+WINDOW = 512
+STEP = 64
+BATCH_SIZE = 32
+EPOCHS = 30
+LR = 5e-5
+DEVICE = "cuda"
+SEED = 42
+```
 
-Run prediction:
+## Обучение
+
+Запуск обучения:
+
+```bash
+python -m scripts.train
+```
+
+Лучшая модель сохраняется в:
+
+```text
+checkpoints/best_model.pth
+```
+
+## Инференс
+
+Запуск предсказания:
+
 ```bash
 python -m scripts.predict_unlabeled
 ```
-## Output
 
-data/prediction_markin/<file_id>.json
+Результат сохраняется в JSON-формате:
 
-## Configuration
+```text
+data/data_with_spikes/prediction_markin/<file_id>.json
+```
 
-Main parameters are defined in config.py
+## Экспорт в ONNX
+
+```bash
+python -m scripts.export_onnx
+```
+
+После экспорта модель сохраняется в:
+
+```text
+checkpoints/best_model.onnx
+```
+
+## Проверка и автоформатирование кода
+
+Для запуска Ruff через tox:
+
+```bash
+python -m tox -e lint
+```
+
+Автоисправление и форматирование:
+
+```bash
+python -m tox -e format
+```
+
+## Зависимости
+
+Основные библиотеки:
+
+- PyTorch;
+- NumPy;
+- scikit-learn;
+- matplotlib;
+- tqdm;
+- Ruff;
+- tox.
+

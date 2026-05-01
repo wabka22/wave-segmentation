@@ -22,5 +22,5 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
-
+data/
 .ruff_cache

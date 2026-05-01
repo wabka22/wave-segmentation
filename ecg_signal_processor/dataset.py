@@ -5,6 +5,19 @@ from torch.utils.data import Dataset
 
 from .core import load_sample
 
+LABEL_MAP = {
+    0: 1,  # QRS
+    1: 2,  # SPIKES
+    4: 3,  # QRS_AFTER_SPIKE TODO: замени 4 на реальный Type
+}
+
+def remap_labels(labels: np.ndarray) -> np.ndarray:
+    new_labels = np.zeros_like(labels, dtype=np.int64)
+
+    for old_type, new_type in LABEL_MAP.items():
+        new_labels[labels == old_type] = new_type
+
+    return new_labels
 
 class ECGDataset(Dataset):
     def __init__(
@@ -31,10 +44,13 @@ class ECGDataset(Dataset):
 
     def __getitem__(self, idx):
         signal_path, markup_path = self.samples[idx]
+
         signal, labels = load_sample(
             signal_path=signal_path,
             markup_path=markup_path,
             background_value=self.background_value,
         )
+
+        labels = remap_labels(labels)
 
         return signal.astype(np.float32), labels.astype(np.int64)

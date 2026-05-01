@@ -1,12 +1,12 @@
 import os
 import random
-from pathlib import Path
-
-import numpy as np
 import torch
+import numpy as np
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from pathlib import Path
+
 from tqdm import tqdm
 
 import config
@@ -44,20 +44,20 @@ def dice_loss(pred, target, smooth=1e-6):
 
 
 def compute_loss(pred, y, weights):
-    dice = dice_loss(pred, y)
-
     num_classes = pred.shape[1]
+
     logits = pred.permute(0, 2, 1).reshape(-1, num_classes)
     targets = y.reshape(-1)
 
-    ce = F.cross_entropy(logits, targets, weight=weights, reduction="none")
+    ce = F.cross_entropy(
+        logits,
+        targets,
+        weight=weights,
+        reduction="mean",
+        label_smoothing=0.01,
+    )
 
-    pt = torch.exp(-ce)
-    focal = ((1 - pt) ** 2 * ce).mean()
-
-    loss = 0.5 * focal + 0.5 * dice
-    return loss, ce.mean(), dice
-
+    return ce, ce, torch.tensor(0.0, device=pred.device)
 
 def get_available_file_ids(signal_dir, markup_dir):
     signal_dir = Path(signal_dir)
@@ -101,74 +101,123 @@ def split_file_ids(file_ids, train_ratio=0.7, val_ratio=0.15, seed=42):
 
     return train_ids, val_ids, test_ids
 
+def print_split_info(name, dataset):
+    json_count = 0
+    mask_count = 0
+    examples = []
+
+    base_dataset = dataset.dataset
+    indices = dataset.indices
+
+    for idx in indices:
+        sample = base_dataset.samples[int(idx)]
+
+        if sample["type"] == "json":
+            json_count += 1
+        elif sample["type"] == "mask":
+            mask_count += 1
+
+        if len(examples) < 10:
+            examples.append(
+                f'{sample["type"]}: {sample["signal_path"].name}'
+            )
+
+    print(f"\n{name}:")
+    print(f"  json: {json_count}")
+    print(f"  mask: {mask_count}")
+    print("  examples:")
+    for ex in examples:
+        print(f"    {ex}")
+
 
 def create_loaders():
-    file_ids = get_available_file_ids(config.SIGNAL_DIR, config.MARKUP_DIR)
-
-    if len(file_ids) == 0:
-        raise ValueError("Не найдено ни одной пары .npy + .json")
-
-    train_ids, val_ids, test_ids = split_file_ids(
-        file_ids=file_ids,
-        train_ratio=config.TRAIN_RATIO,
-        val_ratio=config.VAL_RATIO,
-        seed=config.SEED,
+    full_dataset = ECGDataset(
+        json_signal_dir="data/data_with_spikes/ecs_short",
+        json_markup_dir="data/data_with_spikes/markings",
+        mask_datasets=[
+            ("data/segmentation/signals", "data/segmentation/masks"),
+            ("data/segmentation_kvachadze_npy/signals", "data/segmentation_kvachadze_npy/masks"),
+        ],
+        background_value=-1,
+        json_repeat=1,
     )
 
-    print("Found files:", file_ids)
-    print("Train ids:", train_ids)
-    print("Val ids:", val_ids)
-    print("Test ids:", test_ids)
-    print("Target channels:", config.TARGET_CHANNELS)
+    json_indices = [
+        i for i, sample in enumerate(full_dataset.samples)
+        if sample["type"] == "json"
+    ]
 
-    train_dataset = ECGDataset(
-        signal_dir=config.SIGNAL_DIR,
-        markup_dir=config.MARKUP_DIR,
-        file_ids=train_ids,
-        target_channels=config.TARGET_CHANNELS,
-        window=config.WINDOW,
-        step=config.STEP,
-    )
+    mask_indices = [
+        i for i, sample in enumerate(full_dataset.samples)
+        if sample["type"] == "mask"
+    ]
 
-    val_dataset = ECGDataset(
-        signal_dir=config.SIGNAL_DIR,
-        markup_dir=config.MARKUP_DIR,
-        file_ids=val_ids,
-        target_channels=config.TARGET_CHANNELS,
-        window=config.WINDOW,
-        step=config.STEP,
-    )
+    rng = np.random.default_rng(config.SEED)
+    rng.shuffle(json_indices)
+    rng.shuffle(mask_indices)
 
-    test_dataset = ECGDataset(
-        signal_dir=config.SIGNAL_DIR,
-        markup_dir=config.MARKUP_DIR,
-        file_ids=test_ids,
-        target_channels=config.TARGET_CHANNELS,
-        window=config.WINDOW,
-        step=config.STEP,
-    )
+    def split_indices(indices):
+        n = len(indices)
+        train_end = int(n * config.TRAIN_RATIO)
+        val_end = train_end + int(n * config.VAL_RATIO)
 
-    print(f"Train windows: {len(train_dataset)}")
-    print(f"Val windows:   {len(val_dataset)}")
-    print(f"Test windows:  {len(test_dataset)}")
+        return (
+            indices[:train_end],
+            indices[train_end:val_end],
+            indices[val_end:],
+        )
+
+    json_train, json_val, json_test = split_indices(json_indices)
+    mask_train, mask_val, mask_test = split_indices(mask_indices)
+
+    json_repeat = 25
+
+    train_indices = json_train * json_repeat + mask_train
+    val_indices = json_val + mask_val
+    test_indices = json_test + mask_test
+
+    rng.shuffle(train_indices)
+    rng.shuffle(val_indices)
+    rng.shuffle(test_indices)
+
+    train_dataset = torch.utils.data.Subset(full_dataset, train_indices)
+    val_dataset = torch.utils.data.Subset(full_dataset, val_indices)
+    test_dataset = torch.utils.data.Subset(full_dataset, test_indices)
+
+    print_split_info("TRAIN", train_dataset)
+    print_split_info("VAL", val_dataset)
+    print_split_info("TEST", test_dataset)
+
+    print(f"Total real samples: {len(full_dataset)}")
+    print(f"Train samples:      {len(train_dataset)}")
+    print(f"Val samples:        {len(val_dataset)}")
+    print(f"Test samples:       {len(test_dataset)}")
 
     train_loader = DataLoader(
         train_dataset,
         batch_size=config.BATCH_SIZE,
         shuffle=True,
         num_workers=0,
+        pin_memory=False,
+        persistent_workers=False,
     )
+
     val_loader = DataLoader(
         val_dataset,
         batch_size=config.BATCH_SIZE,
         shuffle=False,
         num_workers=0,
+        pin_memory=False,
+        persistent_workers=False,
     )
+
     test_loader = DataLoader(
         test_dataset,
         batch_size=config.BATCH_SIZE,
         shuffle=False,
         num_workers=0,
+        pin_memory=False,
+        persistent_workers=False,
     )
 
     return train_loader, val_loader, test_loader
@@ -210,11 +259,18 @@ def validate(model, loader, device):
 
     val_f1_qrs = float(np.mean(seg_f1_scores[1]))
     val_f1_spikes = float(np.mean(seg_f1_scores[2]))
-    val_mean_seg_f1 = (val_f1_qrs + val_f1_spikes) / 2.0
+    val_f1_qrs_after_spike = float(np.mean(seg_f1_scores[3]))
+
+    val_mean_seg_f1 = (
+        0.2 * val_f1_qrs +
+        0.4 * val_f1_spikes +
+        0.4 * val_f1_qrs_after_spike
+    )
 
     return {
         "val_f1_qrs": val_f1_qrs,
         "val_f1_spikes": val_f1_spikes,
+        "val_f1_qrs_after_spike": val_f1_qrs_after_spike,
         "val_mean_seg_f1": val_mean_seg_f1,
     }
 
@@ -225,11 +281,15 @@ def main():
     train_loader, val_loader, test_loader = create_loaders()
 
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
-    use_amp = device == "cuda"
+    use_amp = False
+    model = UNet1D(classes=4, in_channels=12).to(device)
 
-    model = UNet1D(classes=3, in_channels=12).to(device)
-
-    weights = torch.tensor([0.03, 0.48, 0.49], dtype=torch.float32, device=device)
+    weights = torch.tensor(
+        [0.03, 0.17, 0.40, 0.40],
+        dtype=torch.float32,
+        device=device
+    )
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
@@ -267,6 +327,7 @@ def main():
             f"val_seg_f1 -> "
             f"QRS: {val_metrics['val_f1_qrs']:.4f} | "
             f"SPIKES: {val_metrics['val_f1_spikes']:.4f} | "
+            f"QRS_AFTER_SPIKE: {val_metrics['val_f1_qrs_after_spike']:.4f} | "
             f"mean: {current_score:.4f}"
         )
 
@@ -306,9 +367,10 @@ def main():
     test_metrics = validate(model, test_loader, device)
 
     print("\nFinal TEST metrics:")
-    print(f"QRS segment F1:    {test_metrics['val_f1_qrs']:.4f}")
-    print(f"SPIKES segment F1: {test_metrics['val_f1_spikes']:.4f}")
-    print(f"Mean segment F1:   {test_metrics['val_mean_seg_f1']:.4f}")
+    print(f"QRS segment F1:             {test_metrics['val_f1_qrs']:.4f}")
+    print(f"SPIKES segment F1:          {test_metrics['val_f1_spikes']:.4f}")
+    print(f"QRS_AFTER_SPIKE segment F1: {test_metrics['val_f1_qrs_after_spike']:.4f}")
+    print(f"Mean segment F1:            {test_metrics['val_mean_seg_f1']:.4f}")
 
 
 if __name__ == "__main__":

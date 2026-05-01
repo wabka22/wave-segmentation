@@ -109,7 +109,9 @@ def evaluate(model, loader, device, min_seg_len=4):
     model.eval()
 
     preds, trues = [], []
-    seg_f1_scores = {1: [], 2: []}  # 1=QRS, 2=SPIKES
+
+    # 1 = QRS, 2 = SPIKES, 3 = QRS_AFTER_SPIKE
+    seg_f1_scores = {1: [], 2: [], 3: []}
 
     with torch.no_grad():
         for x, y in loader:
@@ -125,7 +127,7 @@ def evaluate(model, loader, device, min_seg_len=4):
                 # постобрабатываем только prediction
                 pred_mask = merge_small_segments(pred_mask, min_len=min_seg_len)
 
-                for cls in [1, 2]:
+                for cls in [1, 2, 3]:
                     seg_f1_scores[cls].append(
                         segment_f1(pred_mask, true_mask, cls)
                     )
@@ -139,7 +141,7 @@ def evaluate(model, loader, device, min_seg_len=4):
     f1 = f1_score(
         trues,
         preds,
-        labels=[0, 1, 2],
+        labels=[0, 1, 2, 3],
         average=None,
         zero_division=0,
     )
@@ -148,9 +150,14 @@ def evaluate(model, loader, device, min_seg_len=4):
     print("F1 background:", f1[0])
     print("F1 QRS:", f1[1])
     print("F1 SPIKES:", f1[2])
+    print("F1 QRS_AFTER_SPIKE:", f1[3])
 
     print("\n--- Segment F1 (post-processed) ---")
     print("F1 QRS:", np.mean(seg_f1_scores[1]) if len(seg_f1_scores[1]) > 0 else 0.0)
     print("F1 SPIKES:", np.mean(seg_f1_scores[2]) if len(seg_f1_scores[2]) > 0 else 0.0)
+    print(
+        "F1 QRS_AFTER_SPIKE:",
+        np.mean(seg_f1_scores[3]) if len(seg_f1_scores[3]) > 0 else 0.0
+    )
 
     return seg_f1_scores

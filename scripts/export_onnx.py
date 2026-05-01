@@ -12,7 +12,7 @@ def export_model():
 
     device = "cpu"
 
-    model = UNet1D(classes=3, in_channels=12).to(device)
+    model = UNet1D(classes=4, in_channels=12).to(device)
 
     model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.eval()

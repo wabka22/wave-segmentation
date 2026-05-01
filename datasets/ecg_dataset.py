@@ -1,31 +1,33 @@
 from pathlib import Path
 
 import numpy as np
-import torch
 from torch.utils.data import Dataset
 
 import config
-from ecg_signal_processor import load_sample
+from ecg_signal_processor.core import load_sample, load_signal
 
 
-def remap_labels(labels: np.ndarray) -> np.ndarray:
-    """
-    Исходные метки:
-    -1 -> background
-     0 -> QRS
-     1 -> SPIKES
-     2 -> P
-     3 -> noise
+# Единая схема модели:
+# 0 -> background
+# 1 -> обычный QRS
+# 2 -> SPIKES
+# 3 -> QRS_AFTER_SPIKE
 
-    Новые метки:
-    0 -> background
-    1 -> QRS
-    2 -> SPIKES
-    """
+LABEL_MAP_JSON = {
+    0: 3,  # QRS_AFTER_SPIKE
+    1: 2,  # SPIKES
+}
+
+LABEL_MAP_MASK = {
+    2: 1,  # обычный QRS
+}
+
+
+def remap_labels(labels: np.ndarray, label_map: dict[int, int]) -> np.ndarray:
     new_labels = np.zeros_like(labels, dtype=np.int64)
 
-    new_labels[labels == 0] = 1
-    new_labels[labels == 1] = 2
+    for old_type, new_type in label_map.items():
+        new_labels[labels == old_type] = new_type
 
     return new_labels
 
@@ -33,115 +35,173 @@ def remap_labels(labels: np.ndarray) -> np.ndarray:
 class ECGDataset(Dataset):
     def __init__(
         self,
-        signal_dir: str | Path,
-        markup_dir: str | Path,
-        file_ids: list[str],
-        target_channels: list[int] | None = None,
+        json_signal_dir: str | Path | None = None,
+        json_markup_dir: str | Path | None = None,
+        mask_datasets: list[tuple[str | Path, str | Path]] | None = None,
         background_value: int = -1,
         window: int | None = None,
         step: int | None = None,
+        json_repeat: int = 3,
     ):
-        self.signal_dir = Path(signal_dir)
-        self.markup_dir = Path(markup_dir)
-        self.file_ids = file_ids
-        self.target_channels = (
-            target_channels if target_channels is not None else config.TARGET_CHANNELS
-        )
         self.background_value = background_value
         self.window = window if window is not None else config.WINDOW
         self.step = step if step is not None else config.STEP
 
-        self.X = []
-        self.Y = []
-        self.meta = []  # file_id, channel
+        self.samples = []
 
-        for file_id in self.file_ids:
-            signal_path = self.signal_dir / f"{file_id}.npy"
-            markup_path = self.markup_dir / f"{file_id}.json"
+        if json_signal_dir is not None and json_markup_dir is not None:
+            json_signal_dir = Path(json_signal_dir)
+            json_markup_dir = Path(json_markup_dir)
 
-            if not signal_path.exists() or not markup_path.exists():
-                continue
+            for signal_path in sorted(json_signal_dir.glob("*.npy")):
+                file_id = signal_path.stem
+                markup_path = json_markup_dir / f"{file_id}.json"
 
-            signal, labels = load_sample(
-                signal_path=signal_path,
-                markup_path=markup_path,
-                background_value=self.background_value,
-            )
+                if markup_path.exists():
+                    for _ in range(json_repeat):
+                        self.samples.append(
+                            {
+                                "type": "json",
+                                "signal_path": signal_path,
+                                "label_path": markup_path,
+                            }
+                        )
 
-            if signal.ndim != 2 or labels.ndim != 2:
-                continue
+        if mask_datasets is not None:
+            for signal_dir, mask_dir in mask_datasets:
+                signal_dir = Path(signal_dir)
+                mask_dir = Path(mask_dir)
 
-            labels = remap_labels(labels)
+                for signal_path in sorted(signal_dir.glob("*.npy")):
+                    file_id = signal_path.stem
+                    mask_path = mask_dir / f"{file_id}.npy"
 
-            n_channels = labels.shape[0]
-            valid_channels = [ch for ch in self.target_channels if 0 <= ch < n_channels]
+                    if mask_path.exists():
+                        self.samples.append(
+                            {
+                                "type": "mask",
+                                "signal_path": signal_path,
+                                "label_path": mask_path,
+                            }
+                        )
+        
+        json_count = sum(1 for s in self.samples if s["type"] == "json")
+        mask_count = sum(1 for s in self.samples if s["type"] == "mask")
 
-            for ch in valid_channels:
-                target = labels[ch]
+        print(f"Dataset samples:")
+        print(f"  json samples: {json_count}")
+        print(f"  mask samples: {mask_count}")
+        print(f"  total:        {len(self.samples)}")
 
-                target = self.expand_segments(target, cls=1, radius=2)  # QRS
-                target = self.expand_segments(target, cls=2, radius=1)  # SPIKES
-
-                xs, ys = self._split_windows(signal, target)
-
-                self.X.extend(xs)
-                self.Y.extend(ys)
-                self.meta.extend([(file_id, ch)] * len(xs))
-
-        if len(self.X) == 0:
-            raise ValueError("Dataset is empty. Проверь пути, разметку и target_channels.")
-
-        self.X = torch.stack(self.X).float()   # [N, 12, W]
-        self.Y = torch.stack(self.Y).long()    # [N, W]
-
-    def _split_windows(self, signal: np.ndarray, target: np.ndarray):
-        xs = []
-        ys = []
-
-        length = signal.shape[1]
-
-        if length < self.window:
-            return xs, ys
-
-        for start in range(0, length - self.window + 1, self.step):
-            end = start + self.window
-
-            x_win = signal[:, start:end]
-            y_win = target[start:end]
-
-            xs.append(torch.from_numpy(x_win.copy()))
-            ys.append(torch.from_numpy(y_win.copy()))
-
-        return xs, ys
-
-    def expand_segments(self, mask: np.ndarray, cls: int, radius: int) -> np.ndarray:
-        mask = mask.copy()
-        idx = np.where(mask == cls)[0]
-
-        if len(idx) == 0:
-            return mask
-
-        start = idx[0]
-        prev = idx[0]
-        segments = []
-
-        for i in idx[1:]:
-            if i != prev + 1:
-                segments.append((start, prev + 1))
-                start = i
-            prev = i
-
-        segments.append((start, prev + 1))
-
-        for s, e in segments:
-            new_s = max(0, s - radius)
-            new_e = min(len(mask), e + radius)
-            mask[new_s:new_e] = np.where(mask[new_s:new_e] == 0, cls, mask[new_s:new_e])
-
-        return mask
+        if len(self.samples) == 0:
+            raise ValueError("Dataset is empty. Проверь пути к данным.")
 
     def __len__(self):
-        return len(self.X)
+        return len(self.samples)
+
+    def _load_item(self, sample: dict) -> tuple[np.ndarray, np.ndarray]:
+        if sample["type"] == "json":
+            signal, labels = load_sample(
+                signal_path=sample["signal_path"],
+                markup_path=sample["label_path"],
+                background_value=self.background_value,
+            )
+            labels = remap_labels(labels, LABEL_MAP_JSON)
+
+        elif sample["type"] == "mask":
+            signal = load_signal(sample["signal_path"])
+            labels = np.load(sample["label_path"], allow_pickle=False)
+            labels = remap_labels(labels, LABEL_MAP_MASK)
+
+        else:
+            raise ValueError(f"Unknown sample type: {sample['type']}")
+
+        return signal.astype(np.float32), labels.astype(np.int64)
+
+    def _random_window(
+        self,
+        signal: np.ndarray,
+        labels: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        if labels.ndim == 1:
+            label_length = labels.shape[0]
+        elif labels.ndim == 2:
+            label_length = labels.shape[1]
+        else:
+            raise ValueError(f"Unexpected labels shape: {labels.shape}")
+
+        signal_length = signal.shape[1]
+        length = min(signal_length, label_length)
+
+        signal = signal[:, :length]
+
+        if labels.ndim == 1:
+            labels = labels[:length]
+        else:
+            labels = labels[:, :length]
+
+        if length < self.window:
+            pad_len = self.window - length
+
+            signal = np.pad(
+                signal,
+                pad_width=((0, 0), (0, pad_len)),
+                mode="constant",
+                constant_values=0,
+            )
+
+            if labels.ndim == 1:
+                labels = np.pad(
+                    labels,
+                    pad_width=(0, pad_len),
+                    mode="constant",
+                    constant_values=0,
+                )
+            else:
+                labels = np.pad(
+                    labels,
+                    pad_width=((0, 0), (0, pad_len)),
+                    mode="constant",
+                    constant_values=0,
+                )
+
+            length = self.window
+
+        max_start = length - self.window
+        start = np.random.randint(0, max_start + 1) if max_start > 0 else 0
+        end = start + self.window
+
+        signal_win = signal[:, start:end]
+
+        if labels.ndim == 1:
+            labels_win = labels[start:end]
+        else:
+            labels_win = labels[0, start:end]
+
+        return signal_win, labels_win
 
     def __getitem__(self, idx):
-        return self.X[idx], self.Y[idx]
+        sample = self.samples[idx]
+
+        signal, labels = self._load_item(sample)
+        signal_win, labels_win = self._random_window(signal, labels)
+
+        signal_win = np.nan_to_num(
+            signal_win,
+            nan=0.0,
+            posinf=0.0,
+            neginf=0.0,
+        )
+
+        mean = signal_win.mean(axis=1, keepdims=True)
+        std = signal_win.std(axis=1, keepdims=True)
+        signal_win = (signal_win - mean) / (std + 1e-8)
+
+        labels_win = np.nan_to_num(
+            labels_win,
+            nan=0.0,
+            posinf=0.0,
+            neginf=0.0,
+        )
+
+        return signal_win.astype(np.float32), labels_win.astype(np.int64)
