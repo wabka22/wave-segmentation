@@ -10,20 +10,10 @@ from ecg_signal_processor import load_signal
 from models.unet1d import UNet1D
 
 
-# Модель:
-# 0 -> background
-# 1 -> обычный QRS
-# 2 -> SPIKES
-# 3 -> QRS_AFTER_SPIKE
-
-# JSON:
-# Type 0 -> QRS_AFTER_SPIKE
-# Type 1 -> SPIKES
-# Type 2 -> обычный QRS, если хочешь сохранять и его
 MODEL_TO_JSON_TYPE = {
-    1: 2,  # обычный QRS
+    1: 0,  # QRS
     2: 1,  # SPIKES
-    3: 0,  # QRS_AFTER_SPIKE
+    3: 4,  # QRS_AFTER_SPIKE
 }
 
 
@@ -126,9 +116,9 @@ def predict_full_signal_probs(
 
 def probs_to_mask(
     probs_avg: np.ndarray,
-    qrs_thr: float = 0.35,
-    spikes_thr: float = 0.30,
-    qrs_after_thr: float = 0.25,
+    qrs_thr: float = 0.50,
+    spikes_thr: float = 0.35,
+    qrs_after_thr: float = 0.55,
 ) -> np.ndarray:
     bg_prob = probs_avg[0]
     qrs_prob = probs_avg[1]
@@ -137,14 +127,14 @@ def probs_to_mask(
 
     pred_mask = np.zeros(qrs_prob.shape[0], dtype=np.int32)
 
-    # 1) сначала SPIKES
+    # SPIKES — приоритетнее, фон не проверяем
     spikes_mask = (
         (spikes_prob >= spikes_thr)
-        & (spikes_prob >= bg_prob)
+        & (spikes_prob >= qrs_prob)
+        & (spikes_prob >= qrs_after_prob * 0.7)
     )
     pred_mask[spikes_mask] = 2
 
-    # 2) потом QRS_AFTER_SPIKE — важнее обычного QRS
     qrs_after_mask = (
         (qrs_after_prob >= qrs_after_thr)
         & (qrs_after_prob >= bg_prob)
@@ -152,7 +142,6 @@ def probs_to_mask(
     )
     pred_mask[qrs_after_mask] = 3
 
-    # 3) обычный QRS только там, где ещё пусто
     qrs_mask = (
         (qrs_prob >= qrs_thr)
         & (qrs_prob >= bg_prob)
@@ -162,20 +151,19 @@ def probs_to_mask(
 
     return pred_mask
 
-
 def postprocess_mask(mask: np.ndarray) -> np.ndarray:
-    mask = remove_small_segments(mask, cls=1, min_len=8)   # QRS
-    mask = remove_small_segments(mask, cls=2, min_len=3)   # SPIKES
-    mask = remove_small_segments(mask, cls=3, min_len=8)   # QRS_AFTER_SPIKE
+    mask = remove_small_segments(mask, cls=1, min_len=10)
+    mask = remove_small_segments(mask, cls=2, min_len=2)
+    mask = remove_small_segments(mask, cls=3, min_len=10)
 
-    mask = clip_long_segments(mask, cls=1, max_len=120)
-    mask = clip_long_segments(mask, cls=2, max_len=40)
-    mask = clip_long_segments(mask, cls=3, max_len=120)
+    mask = clip_long_segments(mask, cls=1, max_len=80)
+    mask = clip_long_segments(mask, cls=2, max_len=20)
+    mask = clip_long_segments(mask, cls=3, max_len=80)
 
     return mask
 
 
-def mask_to_segments_full(mask: np.ndarray, channel: int) -> list[dict]:
+def mask_to_segments(mask: np.ndarray, channel: int) -> list[dict]:
     segments = []
     start = None
     current_cls = 0
@@ -223,7 +211,7 @@ def mask_to_segments_full(mask: np.ndarray, channel: int) -> list[dict]:
 
 
 def save_prediction_all_channels_json(
-    all_masks: list[np.ndarray],
+    pred_mask: np.ndarray,
     signal: np.ndarray,
     signal_path: str | Path,
     output_dir: str | Path,
@@ -235,15 +223,17 @@ def save_prediction_all_channels_json(
 
     output_path = output_dir / f"{signal_path.stem}.json"
 
+    n_channels = signal.shape[0]
     all_channels = []
-    for ch, mask in enumerate(all_masks):
-        all_channels.append(mask_to_segments_full(mask, ch))
+
+    for ch in range(n_channels):
+        all_channels.append(mask_to_segments(pred_mask, ch))
 
     markup = {
         "SignalName": signal_path.name,
         "SampleRate": int(sample_rate),
         "SignalFileSize": int(signal.size),
-        "UsedModel": "UNet1D_4classes",
+        "UsedModel": "UNet1D_4classes_last_model",
         "Segments": all_channels,
     }
 
@@ -253,21 +243,7 @@ def save_prediction_all_channels_json(
     return output_path
 
 
-def build_channel_emphasis_input(
-    signal: np.ndarray,
-    channel: int,
-    other_scale: float = 0.1,
-) -> np.ndarray:
-    x = signal.astype(np.float32).copy()
-
-    for ch in range(x.shape[0]):
-        if ch != channel:
-            x[ch] *= other_scale
-
-    return x
-
-
-def plot_all_in_one(
+def plot_prediction(
     signal: np.ndarray,
     probs_avg: np.ndarray,
     pred_mask: np.ndarray,
@@ -313,7 +289,6 @@ def plot_all_in_one(
         for i in range(1, len(idx)):
             if idx[i] != idx[i - 1] + 1:
                 end = idx[i - 1]
-
                 plt.axvspan(
                     start,
                     end,
@@ -321,7 +296,6 @@ def plot_all_in_one(
                     color=colors[cls],
                     label=names[cls] if cls not in used else None,
                 )
-
                 used.add(cls)
                 start = idx[i]
 
@@ -332,7 +306,6 @@ def plot_all_in_one(
             color=colors[cls],
             label=names[cls] if cls not in used else None,
         )
-
         used.add(cls)
 
     plt.title(f"Signal + prediction + probabilities | channel {channel}")
@@ -348,11 +321,11 @@ def main():
 
     model = UNet1D(classes=4, in_channels=12).to(device)
     model.load_state_dict(
-        torch.load("checkpoints/best_model.pth", map_location=device)
+        torch.load("checkpoints/last_model.pth", map_location=device)
     )
     model.eval()
 
-    signal_path = Path("data/data_with_spikes/ecs_short") / "3.npy"
+    signal_path = Path("data/data_with_spikes/ecs_short") / "75.npy"
 
     if not signal_path.exists():
         raise ValueError(f"Не найден файл сигнала: {signal_path}")
@@ -360,56 +333,37 @@ def main():
     print("Using signal:", signal_path)
 
     signal = load_signal(signal_path)
-    n_channels = signal.shape[0]
 
-    all_masks = []
+    probs_avg = predict_full_signal_probs(
+        model=model,
+        signal=signal,
+        device=device,
+        window=config.WINDOW,
+        step=config.STEP,
+    )
 
-    debug_channel = 0
-    debug_probs = None
-    debug_mask = None
+    pred_mask = probs_to_mask(
+        probs_avg,
+        qrs_thr=0.50,
+        spikes_thr=0.35,
+        qrs_after_thr=0.55,
+    )
 
-    for ch in range(n_channels):
-        signal_ch = build_channel_emphasis_input(
-            signal,
-            channel=ch,
-            other_scale=0.1,
-        )
+    pred_mask = postprocess_mask(pred_mask)
 
-        probs_avg = predict_full_signal_probs(
-            model=model,
-            signal=signal_ch,
-            device=device,
-            window=config.WINDOW,
-            step=config.STEP,
-        )
-
-        pred_mask = probs_to_mask(
-            probs_avg,
-            qrs_thr=0.40,
-            spikes_thr=0.30,
-            qrs_after_thr=0.25,
-        )
-    
-        pred_mask = postprocess_mask(pred_mask)
-        all_masks.append(pred_mask)
-
-        print(
-            f"Channel {ch}: "
-            f"classes={np.unique(pred_mask)}, "
-            f"mean_qrs={probs_avg[1].mean():.4f}, "
-            f"mean_spikes={probs_avg[2].mean():.4f}, "
-            f"mean_qrs_after={probs_avg[3].mean():.4f}, "
-            f"max_qrs={probs_avg[1].max():.4f}, "
-            f"max_spikes={probs_avg[2].max():.4f}, "
-            f"max_qrs_after={probs_avg[3].max():.4f}"
-        )
-
-        if ch == debug_channel:
-            debug_probs = probs_avg
-            debug_mask = pred_mask
+    print(
+        f"Prediction: "
+        f"classes={np.unique(pred_mask)}, "
+        f"mean_qrs={probs_avg[1].mean():.4f}, "
+        f"mean_spikes={probs_avg[2].mean():.4f}, "
+        f"mean_qrs_after={probs_avg[3].mean():.4f}, "
+        f"max_qrs={probs_avg[1].max():.4f}, "
+        f"max_spikes={probs_avg[2].max():.4f}, "
+        f"max_qrs_after={probs_avg[3].max():.4f}"
+    )
 
     output_json = save_prediction_all_channels_json(
-        all_masks=all_masks,
+        pred_mask=pred_mask,
         signal=signal,
         signal_path=signal_path,
         output_dir="data/data_with_spikes/prediction_markin",
@@ -418,13 +372,12 @@ def main():
 
     print("Saved JSON to:", output_json)
 
-    if debug_probs is not None and debug_mask is not None:
-        plot_all_in_one(
-            signal=signal,
-            probs_avg=debug_probs,
-            pred_mask=debug_mask,
-            channel=debug_channel,
-        )
+    plot_prediction(
+        signal=signal,
+        probs_avg=probs_avg,
+        pred_mask=pred_mask,
+        channel=0,
+    )
 
 
 if __name__ == "__main__":

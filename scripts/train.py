@@ -170,11 +170,15 @@ def create_loaders():
     json_train, json_val, json_test = split_indices(json_indices)
     mask_train, mask_val, mask_test = split_indices(mask_indices)
 
-    json_repeat = 25
+    json_repeat = 50
+
+    mask_train = mask_train[:int(len(mask_train) * 0.25)]
+    mask_val = mask_val[:int(len(mask_val) * 0.25)]
+    mask_test = mask_test[:int(len(mask_test) * 0.25)]
 
     train_indices = json_train * json_repeat + mask_train
-    val_indices = json_val + mask_val
-    test_indices = json_test + mask_test
+    val_indices = json_val * 5 + mask_val
+    test_indices = json_test * 5 + mask_test
 
     rng.shuffle(train_indices)
     rng.shuffle(val_indices)
@@ -282,6 +286,7 @@ def main():
 
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
     use_amp = False
+
     model = UNet1D(classes=4, in_channels=12).to(device)
 
     weights = torch.tensor(
@@ -289,14 +294,10 @@ def main():
         dtype=torch.float32,
         device=device
     )
-    
+
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
-    best_score = -1.0
-    best_epoch = -1
-    patience = 10
-    bad_epochs = 0
     history = []
 
     print(f"Device: {device}")
@@ -339,29 +340,21 @@ def main():
                 "train_dice": train_dice,
                 "val_f1_qrs": val_metrics["val_f1_qrs"],
                 "val_f1_spikes": val_metrics["val_f1_spikes"],
+                "val_f1_qrs_after_spike": val_metrics["val_f1_qrs_after_spike"],
                 "val_mean_seg_f1": current_score,
             }
         )
 
-        if current_score > best_score:
-            best_score = current_score
-            best_epoch = epoch
-            bad_epochs = 0
+        # Сохраняем ТОЛЬКО последнюю модель
+        torch.save(model.state_dict(), "checkpoints/last_model.pth")
+        print(f"Last model updated at epoch {epoch}")
 
-            torch.save(model.state_dict(), "checkpoints/best_model.pth")
-            print(f"Best model saved at epoch {epoch} with score {best_score:.4f}")
-        else:
-            bad_epochs += 1
-            print(f"No improvement: {bad_epochs}/{patience}")
+    print("\nTraining completed.")
 
-        if bad_epochs >= patience:
-            print("\nEarly stopping triggered.")
-            break
-
-    print(f"\nBest epoch: {best_epoch}, best val mean segment F1: {best_score:.4f}")
-
-    print("\nLoading best model and evaluating on TEST...")
-    model.load_state_dict(torch.load("checkpoints/best_model.pth", map_location=device))
+    print("\nLoading last model and evaluating on TEST...")
+    model.load_state_dict(
+        torch.load("checkpoints/last_model.pth", map_location=device)
+    )
     model.eval()
 
     test_metrics = validate(model, test_loader, device)
