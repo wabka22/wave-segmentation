@@ -152,13 +152,13 @@ def probs_to_mask(
     return pred_mask
 
 def postprocess_mask(mask: np.ndarray) -> np.ndarray:
-    mask = remove_small_segments(mask, cls=1, min_len=10)
-    mask = remove_small_segments(mask, cls=2, min_len=2)
-    mask = remove_small_segments(mask, cls=3, min_len=10)
+    mask = remove_small_segments(mask, cls=1, min_len=5)
+    mask = remove_small_segments(mask, cls=2, min_len=1)
+    mask = remove_small_segments(mask, cls=3, min_len=8)
 
-    mask = clip_long_segments(mask, cls=1, max_len=80)
-    mask = clip_long_segments(mask, cls=2, max_len=20)
-    mask = clip_long_segments(mask, cls=3, max_len=80)
+    mask = clip_long_segments(mask, cls=1, max_len=60)
+    mask = clip_long_segments(mask, cls=2, max_len=12)
+    mask = clip_long_segments(mask, cls=3, max_len=100)
 
     return mask
 
@@ -325,7 +325,7 @@ def main():
     )
     model.eval()
 
-    signal_path = Path("data/data_with_spikes/ecs_short") / "75.npy"
+    signal_path = Path("data/data_with_spikes/ecs_short") / "122.npy"
 
     if not signal_path.exists():
         raise ValueError(f"Не найден файл сигнала: {signal_path}")
@@ -344,9 +344,9 @@ def main():
 
     pred_mask = probs_to_mask(
         probs_avg,
-        qrs_thr=0.50,
-        spikes_thr=0.35,
-        qrs_after_thr=0.55,
+        qrs_thr=0.45,
+        spikes_thr=0.30,
+        qrs_after_thr=0.60,
     )
 
     pred_mask = postprocess_mask(pred_mask)

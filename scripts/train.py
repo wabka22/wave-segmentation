@@ -57,7 +57,11 @@ def compute_loss(pred, y, weights):
         label_smoothing=0.01,
     )
 
-    return ce, ce, torch.tensor(0.0, device=pred.device)
+    dice = dice_loss(pred, y)
+
+    loss = 0.6 * ce + 0.4 * dice
+
+    return loss, ce, dice
 
 def get_available_file_ids(signal_dir, markup_dir):
     signal_dir = Path(signal_dir)
@@ -170,11 +174,11 @@ def create_loaders():
     json_train, json_val, json_test = split_indices(json_indices)
     mask_train, mask_val, mask_test = split_indices(mask_indices)
 
-    json_repeat = 50
+    json_repeat = 35
 
-    mask_train = mask_train[:int(len(mask_train) * 0.25)]
-    mask_val = mask_val[:int(len(mask_val) * 0.25)]
-    mask_test = mask_test[:int(len(mask_test) * 0.25)]
+    mask_train = mask_train[:int(len(mask_train) * 0.7)]
+    mask_val = mask_val[:int(len(mask_val) * 0.7)]
+    mask_test = mask_test[:int(len(mask_test) * 0.7)]
 
     train_indices = json_train * json_repeat + mask_train
     val_indices = json_val * 5 + mask_val
@@ -290,7 +294,7 @@ def main():
     model = UNet1D(classes=4, in_channels=12).to(device)
 
     weights = torch.tensor(
-        [0.03, 0.17, 0.40, 0.40],
+        [0.02, 0.30, 0.34, 0.34],
         dtype=torch.float32,
         device=device
     )
@@ -345,7 +349,6 @@ def main():
             }
         )
 
-        # Сохраняем ТОЛЬКО последнюю модель
         torch.save(model.state_dict(), "checkpoints/last_model.pth")
         print(f"Last model updated at epoch {epoch}")
 
