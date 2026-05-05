@@ -14,8 +14,9 @@ from ecg_signal_processor.core import load_sample, load_signal
 # 3 -> QRS_AFTER_SPIKE
 
 LABEL_MAP_JSON = {
-    0: 3,  # QRS_AFTER_SPIKE
+    0: 1,  # обычный QRS
     1: 2,  # SPIKES
+    4: 3,  # QRS_AFTER_SPIKE
 }
 
 LABEL_MAP_MASK = {
@@ -137,8 +138,10 @@ class ECGDataset(Dataset):
 
         if labels.ndim == 1:
             labels = labels[:length]
+            labels_1d = labels
         else:
             labels = labels[:, :length]
+            labels_1d = labels[0]
 
         if length < self.window:
             pad_len = self.window - length
@@ -150,33 +153,33 @@ class ECGDataset(Dataset):
                 constant_values=0,
             )
 
-            if labels.ndim == 1:
-                labels = np.pad(
-                    labels,
-                    pad_width=(0, pad_len),
-                    mode="constant",
-                    constant_values=0,
-                )
-            else:
-                labels = np.pad(
-                    labels,
-                    pad_width=((0, 0), (0, pad_len)),
-                    mode="constant",
-                    constant_values=0,
-                )
+            labels_1d = np.pad(
+                labels_1d,
+                pad_width=(0, pad_len),
+                mode="constant",
+                constant_values=0,
+            )
 
             length = self.window
 
         max_start = length - self.window
-        start = np.random.randint(0, max_start + 1) if max_start > 0 else 0
+
+        positive_idx = np.where((labels_1d == 2) | (labels_1d == 3))[0]
+
+        if len(positive_idx) > 0 and np.random.rand() < 0.75:
+            center = int(np.random.choice(positive_idx))
+
+            # небольшой сдвиг, чтобы событие не всегда было строго по центру
+            shift = np.random.randint(-self.window // 4, self.window // 4 + 1)
+            start = center - self.window // 2 + shift
+            start = max(0, min(start, max_start))
+        else:
+            start = np.random.randint(0, max_start + 1) if max_start > 0 else 0
+
         end = start + self.window
 
         signal_win = signal[:, start:end]
-
-        if labels.ndim == 1:
-            labels_win = labels[start:end]
-        else:
-            labels_win = labels[0, start:end]
+        labels_win = labels_1d[start:end]
 
         return signal_win, labels_win
 

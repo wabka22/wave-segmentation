@@ -294,7 +294,7 @@ def main():
     model = UNet1D(classes=4, in_channels=12).to(device)
 
     weights = torch.tensor(
-        [0.02, 0.30, 0.34, 0.34],
+        [0.02, 0.25, 0.40, 0.55],
         dtype=torch.float32,
         device=device
     )
@@ -303,6 +303,9 @@ def main():
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     history = []
+    best_score = -1.0
+    best_model_path = "checkpoints/best_model.pth"
+    last_model_path = "checkpoints/last_model.pth"
 
     print(f"Device: {device}")
     print("Start training...")
@@ -349,14 +352,22 @@ def main():
             }
         )
 
-        torch.save(model.state_dict(), "checkpoints/last_model.pth")
+        torch.save(model.state_dict(), last_model_path)
         print(f"Last model updated at epoch {epoch}")
+
+        if current_score > best_score:
+            best_score = current_score
+            torch.save(model.state_dict(), best_model_path)
+            print(
+                f"Best model updated at epoch {epoch} | "
+                f"best_val_mean_seg_f1: {best_score:.4f}"
+            )
 
     print("\nTraining completed.")
 
-    print("\nLoading last model and evaluating on TEST...")
+    print("\nLoading BEST model and evaluating on TEST...")
     model.load_state_dict(
-        torch.load("checkpoints/last_model.pth", map_location=device)
+        torch.load(best_model_path, map_location=device)
     )
     model.eval()
 

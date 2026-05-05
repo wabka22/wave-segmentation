@@ -1,114 +1,133 @@
-import json
 from pathlib import Path
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-SIGNAL_DIR = Path("data/data_with_spikes/ecs_short")
-MARKUP_DIR = Path("data/data_with_spikes/markings")
+# Типы сегментов
+BACKGROUND = -1
+QRS = 0
+SPIKE = 1
+OTHER_SPIKE = 2
+QRS_AFTER_SPIKE = 4
 
+# Цвета
+COLORS = {
+    QRS: "green",
+    SPIKE: "red",
+    OTHER_SPIKE: "purple",      # если есть Type 2
+    QRS_AFTER_SPIKE: "orange",
+}
 
 LABEL_NAMES = {
-    0: "Type 0",
-    1: "Type 1",
-    2: "Type 2",
-    3: "Type 3",
-    4: "Type 4",
+    QRS: "QRS",
+    SPIKE: "SPIKE",
+    OTHER_SPIKE: "SPIKE_TYPE_2",
+    QRS_AFTER_SPIKE: "QRS_AFTER_SPIKE",
 }
 
 
-COLORS = {
-    0: "green",
-    1: "orange",
-    2: "blue",
-    3: "red",
-    4: "purple",
-}
+def load_json_labels(
+    json_path: str | Path,
+    signal_shape: tuple,
+    background_value: int = -1,
+) -> np.ndarray:
+    """
+    Преобразует json-разметку в массив labels shape=(channels, length)
+    """
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    labels = np.full(signal_shape, background_value, dtype=np.int64)
+
+    for channel_segments in data["Segments"]:
+        for seg in channel_segments:
+            ch = seg["Channel"]
+            seg_type = seg["Type"]
+            start = seg["StartMark"]
+            end = seg["EndMark"]
+
+            labels[ch, start:end + 1] = seg_type
+
+    return labels
 
 
-def load_json_markup(path: Path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def plot_json_file(
-    file_id: str,
+def plot_signal_with_json_labels(
+    signal_path: str | Path,
+    labels_path: str | Path,
     channel: int = 0,
-    start: int = 0,
-    end: int | None = None,
-):
-    signal_path = SIGNAL_DIR / f"{file_id}.npy"
-    markup_path = MARKUP_DIR / f"{file_id}.json"
+) -> None:
+    signal = np.load(signal_path)
 
-    signal = np.load(signal_path, allow_pickle=False)
-    markup = load_json_markup(markup_path)
+    # signal shape: (channels, samples)
+    labels = load_json_labels(labels_path, signal.shape)
 
     sig = signal[channel]
+    lab = labels[channel]
 
-    if end is None:
-        end = len(sig)
+    plt.figure(figsize=(18, 6))
+    plt.plot(sig, label="ECG signal", linewidth=1)
 
-    sig = sig[start:end]
+    unique_labels = np.unique(lab)
+    unique_labels = unique_labels[unique_labels != BACKGROUND]
 
-    plt.figure(figsize=(20, 6))
-    plt.plot(np.arange(start, end), sig, linewidth=1, label=f"Signal ch{channel}")
+    used_labels = set()
 
-    segments = markup["Segments"][channel]
+    for label in unique_labels:
+        indices = np.where(lab == label)[0]
 
-    print(f"\nFILE: {file_id}")
-    print(f"CHANNEL: {channel}")
-
-    used = set()
-
-    for seg in segments:
-        seg_type = int(seg["Type"])
-        seg_start = int(seg["StartMark"])
-        seg_end = int(seg["EndMark"])
-
-        if seg_end < start or seg_start > end:
+        if len(indices) == 0:
             continue
 
-        draw_start = max(seg_start, start)
-        draw_end = min(seg_end, end)
+        start = indices[0]
 
-        print(
-            f"Type {seg_type}: {seg_start}-{seg_end}"
-        )
+        for i in range(1, len(indices)):
+            if indices[i] != indices[i - 1] + 1:
+                end = indices[i - 1]
+
+                plot_label = LABEL_NAMES.get(label, f"Type {label}") if label not in used_labels else None
+
+                plt.axvspan(
+                    start,
+                    end,
+                    alpha=0.3,
+                    color=COLORS.get(label, "gray"),
+                    label=plot_label,
+                )
+
+                used_labels.add(label)
+                start = indices[i]
+
+        plot_label = LABEL_NAMES.get(label, f"Type {label}") if label not in used_labels else None
 
         plt.axvspan(
-            draw_start,
-            draw_end,
+            start,
+            indices[-1],
             alpha=0.3,
-            color=COLORS.get(seg_type, "gray"),
-            label=LABEL_NAMES.get(seg_type, f"Type {seg_type}")
-            if seg_type not in used
-            else None,
+            color=COLORS.get(label, "gray"),
+            label=plot_label,
         )
 
-        used.add(seg_type)
+        used_labels.add(label)
 
-    plt.title(
-        f"{file_id}.json | channel {channel} | samples {start}:{end}"
-    )
+    plt.title(f"Channel {channel} | {Path(signal_path).name}")
     plt.xlabel("Sample")
     plt.ylabel("Amplitude")
     plt.legend()
-    plt.grid()
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
 if __name__ == "__main__":
-    files = sorted(SIGNAL_DIR.glob("*.npy"))
+    project_root = Path(__file__).resolve().parents[1]
 
-    print("Available files:")
-    for f in files[:20]:
-        print(f.stem)
+    signal_path = project_root / "data" / "data_with_spikes" / "ecs_short" / "3.npy"
+    labels_path = project_root / "data" / "data_with_spikes" / "markings" / "3.json"
 
-    # поменяй при необходимости
-    plot_json_file(
-        file_id="0",
-        channel=0,
-        start=0,
-        end=3000,
-    )
+    print("Project root:", project_root)
+    print("Signal path:", signal_path)
+    print("Labels path:", labels_path)
+
+    plot_signal_with_json_labels(signal_path, labels_path, channel=0)

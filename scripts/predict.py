@@ -321,7 +321,7 @@ def main():
 
     model = UNet1D(classes=4, in_channels=12).to(device)
     model.load_state_dict(
-        torch.load("checkpoints/last_model.pth", map_location=device)
+        torch.load("checkpoints/best_model.pth", map_location=device)
     )
     model.eval()
 
