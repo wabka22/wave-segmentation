@@ -54,12 +54,12 @@ def compute_loss(pred, y, weights):
         targets,
         weight=weights,
         reduction="mean",
-        label_smoothing=0.01,
+        label_smoothing=0.005,
     )
 
     dice = dice_loss(pred, y)
 
-    loss = 0.6 * ce + 0.4 * dice
+    loss = 0.65 * ce + 0.35 * dice
 
     return loss, ce, dice
 
@@ -294,11 +294,11 @@ def main():
     model = UNet1D(classes=4, in_channels=12).to(device)
 
     weights = torch.tensor(
-        [0.02, 0.25, 0.40, 0.55],
+        [0.02, 0.25, 0.45, 0.65],
         dtype=torch.float32,
         device=device
     )
-
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 

@@ -117,8 +117,8 @@ def predict_full_signal_probs(
 def probs_to_mask(
     probs_avg: np.ndarray,
     qrs_thr: float = 0.50,
-    spikes_thr: float = 0.35,
-    qrs_after_thr: float = 0.55,
+    spikes_thr: float = 0.25,
+    qrs_after_thr: float = 0.50,
 ) -> np.ndarray:
     bg_prob = probs_avg[0]
     qrs_prob = probs_avg[1]
@@ -127,21 +127,24 @@ def probs_to_mask(
 
     pred_mask = np.zeros(qrs_prob.shape[0], dtype=np.int32)
 
-    # SPIKES — приоритетнее, фон не проверяем
+    # SPIKES
     spikes_mask = (
         (spikes_prob >= spikes_thr)
-        & (spikes_prob >= qrs_prob)
-        & (spikes_prob >= qrs_after_prob * 0.7)
+        & (spikes_prob >= qrs_prob * 0.75)
+        & (spikes_prob >= bg_prob)
     )
     pred_mask[spikes_mask] = 2
 
+    # QRS_AFTER_SPIKE
     qrs_after_mask = (
         (qrs_after_prob >= qrs_after_thr)
         & (qrs_after_prob >= bg_prob)
-        & ~spikes_mask
+        & (qrs_after_prob >= qrs_prob * 0.75)
+        & (pred_mask == 0)
     )
     pred_mask[qrs_after_mask] = 3
 
+    # QRS
     qrs_mask = (
         (qrs_prob >= qrs_thr)
         & (qrs_prob >= bg_prob)
@@ -157,11 +160,35 @@ def postprocess_mask(mask: np.ndarray) -> np.ndarray:
     mask = remove_small_segments(mask, cls=3, min_len=8)
 
     mask = clip_long_segments(mask, cls=1, max_len=60)
-    mask = clip_long_segments(mask, cls=2, max_len=12)
+    mask = clip_long_segments(mask, cls=2, max_len=40)
     mask = clip_long_segments(mask, cls=3, max_len=100)
 
     return mask
 
+def keep_qrs_after_only_near_spike(
+    mask: np.ndarray,
+    max_dist_after_spike: int = 160,
+) -> np.ndarray:
+    mask = mask.copy()
+
+    spike_idx = np.where(mask == 2)[0]
+
+    if len(spike_idx) == 0:
+        mask[mask == 3] = 1
+        return mask
+
+    qrs_after_idx = np.where(mask == 3)[0]
+
+    for i in qrs_after_idx:
+        has_spike_before = np.any(
+            (spike_idx >= i - max_dist_after_spike) &
+            (spike_idx < i)
+        )
+
+        if not has_spike_before:
+            mask[i] = 1
+
+    return mask
 
 def mask_to_segments(mask: np.ndarray, channel: int) -> list[dict]:
     segments = []
@@ -243,6 +270,71 @@ def save_prediction_all_channels_json(
     return output_path
 
 
+def get_segments(mask: np.ndarray, cls: int) -> list[tuple[int, int]]:
+    segments = []
+    start = None
+
+    for i, val in enumerate(mask):
+        if val == cls and start is None:
+            start = i
+        elif val != cls and start is not None:
+            segments.append((start, i - 1))
+            start = None
+
+    if start is not None:
+        segments.append((start, len(mask) - 1))
+
+    return segments
+
+
+def make_qrs_after_spikes(
+    mask: np.ndarray,
+    min_dist: int = 0,
+    max_dist: int = 260,
+) -> np.ndarray:
+    mask = mask.copy()
+
+    spike_segments = get_segments(mask, cls=2)
+    qrs_segments = get_segments(mask, cls=1)
+    qrs_after_segments = get_segments(mask, cls=3)
+
+    used_qrs = set()
+
+    for sp_start, sp_end in spike_segments:
+        best_seg = None
+        best_dist = None
+        best_kind = None
+
+        for idx, (q_start, q_end) in enumerate(qrs_segments):
+            if idx in used_qrs:
+                continue
+
+            dist = q_start - sp_end
+
+            if min_dist <= dist <= max_dist:
+                if best_dist is None or dist < best_dist:
+                    best_dist = dist
+                    best_seg = (q_start, q_end)
+                    best_kind = ("qrs", idx)
+
+        for q_start, q_end in qrs_after_segments:
+            dist = q_start - sp_end
+
+            if min_dist <= dist <= max_dist:
+                if best_dist is None or dist < best_dist:
+                    best_dist = dist
+                    best_seg = (q_start, q_end)
+                    best_kind = ("qrs_after", None)
+
+        if best_seg is not None:
+            q_start, q_end = best_seg
+            mask[q_start:q_end + 1] = 3
+
+            if best_kind[0] == "qrs":
+                used_qrs.add(best_kind[1])
+
+    return mask
+
 def plot_prediction(
     signal: np.ndarray,
     probs_avg: np.ndarray,
@@ -315,6 +407,58 @@ def plot_prediction(
     plt.grid()
     plt.show()
 
+def enforce_spike_then_qrs_after(
+    mask: np.ndarray,
+    clear_before: int = 35,
+    clear_after: int = 20,
+    qrs_search_after: int = 260,
+) -> np.ndarray:
+    mask = mask.copy()
+
+    spike_segments = get_segments(mask, cls=2)
+
+    for sp_start, sp_end in spike_segments:
+
+        left = max(0, sp_start - clear_before)
+        right = min(len(mask), sp_end + clear_after + 1)
+
+        qrs_near_spike = mask[left:right] == 1
+        part = mask[left:right]
+        part[qrs_near_spike] = 0
+        mask[left:right] = part
+
+        search_left = sp_end + 1
+        search_right = min(len(mask), sp_end + qrs_search_after + 1)
+
+        candidate_start = None
+        candidate_end = None
+
+        i = search_left
+        while i < search_right:
+            if mask[i] == 1 or mask[i] == 3:
+                candidate_start = i
+                current_cls = mask[i]
+
+                while i < search_right and mask[i] == current_cls:
+                    i += 1
+
+                candidate_end = i - 1
+                break
+
+            i += 1
+
+        if candidate_start is not None:
+            mask[candidate_start:candidate_end + 1] = 3
+
+            after_left = candidate_end + 1
+            after_right = min(len(mask), candidate_end + 40)
+
+            part = mask[after_left:after_right]
+            part[part == 1] = 0
+            mask[after_left:after_right] = part
+
+    return mask
+
 
 def main():
     device = config.DEVICE if torch.cuda.is_available() else "cpu"
@@ -326,6 +470,7 @@ def main():
     model.eval()
 
     signal_path = Path("data/data_with_spikes/ecs_short") / "122.npy"
+    # signal_path = Path("data/segmentation/signals") / "12.npy"
 
     if not signal_path.exists():
         raise ValueError(f"Не найден файл сигнала: {signal_path}")
@@ -345,12 +490,24 @@ def main():
     pred_mask = probs_to_mask(
         probs_avg,
         qrs_thr=0.45,
-        spikes_thr=0.30,
+        spikes_thr=0.25,
         qrs_after_thr=0.60,
     )
+    
+    pred_mask = keep_qrs_after_only_near_spike(
+        pred_mask,
+        max_dist_after_spike=260,
+    )
 
-    pred_mask = postprocess_mask(pred_mask)
+    pred_mask = enforce_spike_then_qrs_after(
+        pred_mask,
+        clear_before=35,
+        clear_after=20,
+        qrs_search_after=260,
+    )
 
+    # pred_mask = postprocess_mask(pred_mask)
+    
     print(
         f"Prediction: "
         f"classes={np.unique(pred_mask)}, "

@@ -118,6 +118,22 @@ class ECGDataset(Dataset):
             raise ValueError(f"Unknown sample type: {sample['type']}")
 
         return signal.astype(np.float32), labels.astype(np.int64)
+    
+    def _segments(self, labels: np.ndarray, cls: int) -> list[tuple[int, int]]:
+        segments = []
+        start = None
+
+        for i, val in enumerate(labels):
+            if val == cls and start is None:
+                start = i
+            elif val != cls and start is not None:
+                segments.append((start, i - 1))
+                start = None
+
+        if start is not None:
+            segments.append((start, len(labels) - 1))
+
+        return segments
 
     def _random_window(
         self,
@@ -164,17 +180,69 @@ class ECGDataset(Dataset):
 
         max_start = length - self.window
 
-        positive_idx = np.where((labels_1d == 2) | (labels_1d == 3))[0]
+        qrs_idx = np.where(labels_1d == 1)[0]
+        spike_idx = np.where(labels_1d == 2)[0]
+        all_pos_idx = np.where(labels_1d != 0)[0]
 
-        if len(positive_idx) > 0 and np.random.rand() < 0.75:
-            center = int(np.random.choice(positive_idx))
+        qrs_after_segments = self._segments(labels_1d, cls=3)
+        spike_segments = self._segments(labels_1d, cls=2)
 
-            # небольшой сдвиг, чтобы событие не всегда было строго по центру
+        r = np.random.rand()
+        start = None
+
+        # 40% — специальный режим: QRS_AFTER_SPIKE вместе с предыдущим SPIKE
+        if len(qrs_after_segments) > 0 and r < 0.40:
+            q_start, q_end = qrs_after_segments[np.random.randint(len(qrs_after_segments))]
+
+            # ищем ближайший spike перед этим QRS_AFTER_SPIKE
+            candidates = []
+            for sp_start, sp_end in spike_segments:
+                dist = q_start - sp_end
+                if 0 <= dist <= int(self.window * 0.8):
+                    candidates.append((sp_start, sp_end, dist))
+
+            if len(candidates) > 0:
+                sp_start, sp_end, _ = min(candidates, key=lambda x: x[2])
+
+                # хотим, чтобы и spike, и qrs_after были внутри окна
+                left = max(0, sp_start - self.window // 10)
+                right = min(length - 1, q_end + self.window // 10)
+
+                min_start = max(0, right - self.window + 1)
+                max_start_allowed = min(max_start, left)
+
+                if min_start <= max_start_allowed:
+                    start = np.random.randint(min_start, max_start_allowed + 1)
+                else:
+                    start = q_start - int(self.window * 0.65)
+
+            else:
+                # если spike не нашли, просто кладём QRS_AFTER ближе к правой части окна
+                center = np.random.randint(q_start, q_end + 1)
+                start = center - int(self.window * 0.65)
+
+        # 20% — spike
+        elif len(spike_idx) > 0 and r < 0.60:
+            center = int(np.random.choice(spike_idx))
+            start = center - int(self.window * 0.35)
+
+        # 25% — обычный QRS
+        elif len(qrs_idx) > 0 and r < 0.85:
+            center = int(np.random.choice(qrs_idx))
             shift = np.random.randint(-self.window // 4, self.window // 4 + 1)
             start = center - self.window // 2 + shift
-            start = max(0, min(start, max_start))
+
+        # 7% — любое событие
+        elif len(all_pos_idx) > 0 and r < 0.92:
+            center = int(np.random.choice(all_pos_idx))
+            shift = np.random.randint(-self.window // 4, self.window // 4 + 1)
+            start = center - self.window // 2 + shift
+
+        # 8% — случайный фон/кусок
         else:
             start = np.random.randint(0, max_start + 1) if max_start > 0 else 0
+
+        start = max(0, min(int(start), max_start))
 
         end = start + self.window
 
