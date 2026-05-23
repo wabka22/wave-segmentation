@@ -27,7 +27,7 @@ class UNet1D(nn.Module):
     def __init__(self, classes=4, in_channels=12):
 
         super().__init__()
-
+        # ВО время сжатия уменьшается длина сигнала, но увеличивается количество признаков
         # ===== ENCODER (сжатие, извлечение признаков) =====
         self.enc1 = ConvBlock(in_channels, 32)  # [B,12,L] -> [B,32,L]
         self.pool1 = nn.MaxPool1d(2)            # L -> L/2

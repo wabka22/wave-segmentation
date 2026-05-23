@@ -18,32 +18,59 @@ cudnn.benchmark = True
 
 
 def set_seed(seed=42):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    """
+    Фиксирует генераторы случайных чисел для повторяемости обучения.
+
+    Это помогает получать более похожие результаты при повторных запусках:
+    одинаковое перемешивание данных, одинаковую инициализацию весов
+    и более детерминированное поведение CUDA/cuDNN.
+    """
+    random.seed(seed)  # фиксирует Python random
+    np.random.seed(seed)  # фиксирует NumPy random
+    torch.manual_seed(seed)  # фиксирует PyTorch CPU
+    torch.cuda.manual_seed_all(seed)  # фиксирует PyTorch GPU
+    torch.backends.cudnn.deterministic = True  # просит детерминированные CUDA-алгоритмы
+    torch.backends.cudnn.benchmark = False  # отключает автоподбор быстрых CUDA-алгоритмов
 
 
 def dice_loss(pred, target, smooth=1e-6):
+    """
+    Считает Dice Loss для задачи сегментации ЭКГ.
+
+    pred — выход модели формы [B, classes, L].
+    target — правильные метки формы [B, L].
+
+    Dice измеряет совпадение предсказанных и правильных областей.
+    Фон исключается из расчёта, чтобы он не доминировал над редкими классами.
+    """
+    # Dice измеряет, насколько хорошо совпали две области:
     num_classes = pred.shape[1]
 
-    pred = F.softmax(pred, dim=1)
-    target_onehot = F.one_hot(target, num_classes).permute(0, 2, 1).float()
+    pred = F.softmax(pred, dim=1)  # значения нейронки в вероятности классов
+
+    target_onehot = F.one_hot(target, num_classes).permute(0, 2, 1).float()  # перевод в матрицу
 
     intersection = (pred * target_onehot).sum(dim=2)
     union = pred.sum(dim=2) + target_onehot.sum(dim=2)
 
     dice = (2 * intersection + smooth) / (union + smooth)
 
-    # фон убираем
+    # фон убираем то есть первый класс из наших классов
     dice = dice[:, 1:]
 
-    return 1 - dice.mean()
+    return 1 - dice.mean()  # Dice — это метрика качества, её надо максимизировать
 
 
 def compute_loss(pred, y, weights):
+    """
+    Считает итоговую функцию потерь для обучения модели.
+
+    Используются две части:
+    1. CrossEntropy — ошибка классификации каждой отдельной точки.
+    2. Dice Loss — ошибка совпадения целых сегментов.
+
+    Итоговый loss — взвешенная сумма CrossEntropy и Dice Loss.
+    """
     num_classes = pred.shape[1]
 
     logits = pred.permute(0, 2, 1).reshape(-1, num_classes)
@@ -61,51 +88,18 @@ def compute_loss(pred, y, weights):
 
     loss = 0.65 * ce + 0.35 * dice
 
+    # CE = ошибка классификации каждой отдельной точки
+    # DiceLoss = ошибка совпадения целых сегментов
     return loss, ce, dice
 
-def get_available_file_ids(signal_dir, markup_dir):
-    signal_dir = Path(signal_dir)
-    markup_dir = Path(markup_dir)
-
-    file_ids = []
-
-    for signal_path in sorted(signal_dir.glob("*.npy")):
-        file_id = signal_path.stem
-        markup_path = markup_dir / f"{file_id}.json"
-
-        if markup_path.exists():
-            file_ids.append(file_id)
-
-    return file_ids
-
-
-def split_file_ids(file_ids, train_ratio=0.7, val_ratio=0.15, seed=42):
-    if len(file_ids) < 3:
-        raise ValueError("Слишком мало файлов для train/val/test split")
-
-    rng = np.random.default_rng(seed)
-    shuffled = list(file_ids)
-    rng.shuffle(shuffled)
-
-    n = len(shuffled)
-    n_train = max(1, int(n * train_ratio))
-    n_val = max(1, int(n * val_ratio))
-    n_test = n - n_train - n_val
-
-    if n_test < 1:
-        n_test = 1
-        if n_train > n_val:
-            n_train -= 1
-        else:
-            n_val -= 1
-
-    train_ids = shuffled[:n_train]
-    val_ids = shuffled[n_train:n_train + n_val]
-    test_ids = shuffled[n_train + n_val:]
-
-    return train_ids, val_ids, test_ids
 
 def print_split_info(name, dataset):
+    """
+    Печатает информацию о train/val/test subset.
+
+    Показывает, сколько json-примеров и mask-примеров попало в split,
+    а также выводит несколько имён файлов для проверки.
+    """
     json_count = 0
     mask_count = 0
     examples = []
@@ -135,6 +129,16 @@ def print_split_info(name, dataset):
 
 
 def create_loaders():
+    """
+    Создаёт train, validation и test DataLoader.
+
+    Внутри:
+    1. Создаётся полный ECGDataset.
+    2. Отдельно собираются индексы json и mask-примеров.
+    3. Данные перемешиваются и делятся на train/val/test.
+    4. json-примеры дополнительно повторяются, чтобы редкие классы чаще попадали в обучение.
+    5. Создаются DataLoader для обучения, валидации и теста.
+    """
     full_dataset = ECGDataset(
         json_signal_dir="data/data_with_spikes/ecs_short",
         json_markup_dir="data/data_with_spikes/markings",
@@ -145,6 +149,14 @@ def create_loaders():
         background_value=-1,
         json_repeat=1,
     )
+
+    x, y = full_dataset[0]
+
+    print(type(x), type(y))
+    print("x shape:", x.shape)
+    print("y shape:", y.shape)
+    print("samples[0]:", full_dataset.samples[0])
+    print("dataset len:", len(full_dataset))
 
     json_indices = [
         i for i, sample in enumerate(full_dataset.samples)
@@ -157,10 +169,17 @@ def create_loaders():
     ]
 
     rng = np.random.default_rng(config.SEED)
+    # перемешать элементы списка в случайном порядке.
     rng.shuffle(json_indices)
     rng.shuffle(mask_indices)
 
     def split_indices(indices):
+        """
+        Делит список индексов на train, validation и test.
+
+        Размеры частей задаются через config.TRAIN_RATIO и config.VAL_RATIO.
+        Test получает оставшиеся индексы.
+        """
         n = len(indices)
         train_end = int(n * config.TRAIN_RATIO)
         val_end = train_end + int(n * config.VAL_RATIO)
@@ -232,6 +251,13 @@ def create_loaders():
 
 
 def train_one_epoch(model, loader, optimizer, scaler, device, weights, use_amp):
+    """
+    Обучает модель одну эпоху.
+
+    Одна эпоха — это один полный проход по всем батчам train DataLoader.
+    Внутри для каждого батча выполняются:
+    forward pass, расчёт loss, backward pass и обновление весов модели.
+    """
     model.train()
 
     loss_sum = 0.0
@@ -241,28 +267,38 @@ def train_one_epoch(model, loader, optimizer, scaler, device, weights, use_amp):
     progress = tqdm(loader, desc="train", leave=False)
 
     for x, y in progress:
+        # x — входные данные для модели
+        # y — правильные ответы / разметка
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
 
+        # перед каждым новым батчем надо обнулить старые градиенты
         optimizer.zero_grad(set_to_none=True)
 
         with torch.amp.autocast("cuda", enabled=use_amp):
             pred = model(x)
             loss, ce, dice = compute_loss(pred, y, weights)
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        scaler.scale(loss).backward()  # Вычисляем градиенты, масштабируя loss для стабильности при использовании смешанной точности
+        scaler.step(optimizer)  # Обновляем веса модели
+        scaler.update()  # Обновляем scaler
 
         loss_sum += loss.item()
         ce_sum += ce.item()
         dice_sum += dice.item()
 
     n = len(loader)
-    return loss_sum / n, ce_sum / n, dice_sum / n
+    return loss_sum / n, ce_sum / n, dice_sum / n  # возвращаем средние значения по эпохе для loss, ce и dice
 
 
 def validate(model, loader, device):
+    """
+    Оценивает модель на validation или test DataLoader.
+
+    Использует функцию evaluate(), которая возвращает segment F1
+    для каждого класса. Затем считается отдельный F1 для QRS, SPIKES,
+    QRS_AFTER_SPIKE и общий взвешенный score.
+    """
     seg_f1_scores = evaluate(model, loader, device)
 
     val_f1_qrs = float(np.mean(seg_f1_scores[1]))
@@ -284,6 +320,14 @@ def validate(model, loader, device):
 
 
 def main():
+    """
+    Основная функция обучения.
+
+    Создаёт DataLoader, модель, веса классов, optimizer и scaler.
+    Затем запускает обучение на несколько эпох, сохраняет last_model
+    после каждой эпохи и best_model по лучшему validation score.
+    После обучения загружает лучшую модель и оценивает её на test set.
+    """
     os.makedirs("checkpoints", exist_ok=True)
 
     train_loader, val_loader, test_loader = create_loaders()
@@ -298,8 +342,8 @@ def main():
         dtype=torch.float32,
         device=device
     )
-    
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.LR)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.LR) #объект, который обновляет веса нейросети после того, как PyTorch посчитал градиенты.
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     history = []
@@ -382,5 +426,5 @@ def main():
 
 if __name__ == "__main__":
     set_seed(config.SEED)
+
     main()
-    

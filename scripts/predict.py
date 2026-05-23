@@ -469,7 +469,7 @@ def main():
     )
     model.eval()
 
-    signal_path = Path("data/data_with_spikes/ecs_short") / "122.npy"
+    signal_path = Path("data/data_with_spikes/ecs_short") / "0.npy"
     # signal_path = Path("data/segmentation/signals") / "12.npy"
 
     if not signal_path.exists():

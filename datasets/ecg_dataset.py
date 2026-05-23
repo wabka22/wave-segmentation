@@ -25,6 +25,11 @@ LABEL_MAP_MASK = {
 
 
 def remap_labels(labels: np.ndarray, label_map: dict[int, int]) -> np.ndarray:
+    """
+    Переводит исходные метки разметки в единую схему классов модели.
+
+    Все метки, которых нет в label_map, считаются фоном и получают класс 0.
+    """
     new_labels = np.zeros_like(labels, dtype=np.int64)
 
     for old_type, new_type in label_map.items():
@@ -34,6 +39,18 @@ def remap_labels(labels: np.ndarray, label_map: dict[int, int]) -> np.ndarray:
 
 
 class ECGDataset(Dataset):
+    """
+    Dataset для обучения модели сегментации ЭКГ.
+
+    Поддерживает два источника данных:
+    1. JSON-разметку: .npy сигнал + .json файл с сегментами.
+    2. Mask-разметку: .npy сигнал + .npy маска.
+
+    При обращении к элементу датасета загружается полный сигнал,
+    из него выбирается окно фиксированной длины, выполняется нормализация,
+    и возвращается пара: signal_win, labels_win.
+    """
+
     def __init__(
         self,
         json_signal_dir: str | Path | None = None,
@@ -44,6 +61,12 @@ class ECGDataset(Dataset):
         step: int | None = None,
         json_repeat: int = 3,
     ):
+        """
+        Собирает список доступных обучающих примеров.
+
+        В self.samples сохраняются не сами данные, а пути к сигналам
+        и разметке. Данные загружаются позже в __getitem__.
+        """
         self.background_value = background_value
         self.window = window if window is not None else config.WINDOW
         self.step = step if step is not None else config.STEP
@@ -85,7 +108,7 @@ class ECGDataset(Dataset):
                                 "label_path": mask_path,
                             }
                         )
-        
+
         json_count = sum(1 for s in self.samples if s["type"] == "json")
         mask_count = sum(1 for s in self.samples if s["type"] == "mask")
 
@@ -98,9 +121,24 @@ class ECGDataset(Dataset):
             raise ValueError("Dataset is empty. Проверь пути к данным.")
 
     def __len__(self):
+        """
+        Возвращает количество примеров в датасете.
+
+        Это количество записей в self.samples.
+        """
         return len(self.samples)
 
     def _load_item(self, sample: dict) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Загружает полный сигнал и полную разметку для одного sample.
+
+        Для JSON-разметки используется load_sample().
+        Для mask-разметки сигнал и маска загружаются из .npy файлов.
+
+        Возвращает:
+            signal: массив формы [channels, samples]
+            labels: массив меток, приведённый к единой схеме классов модели
+        """
         if sample["type"] == "json":
             signal, labels = load_sample(
                 signal_path=sample["signal_path"],
@@ -118,8 +156,14 @@ class ECGDataset(Dataset):
             raise ValueError(f"Unknown sample type: {sample['type']}")
 
         return signal.astype(np.float32), labels.astype(np.int64)
-    
+
     def _segments(self, labels: np.ndarray, cls: int) -> list[tuple[int, int]]:
+        """
+        Находит непрерывные сегменты заданного класса в одномерной маске.
+
+        Например, для labels = [0, 2, 2, 0, 2] и cls = 2
+        вернёт [(1, 2), (4, 4)].
+        """
         segments = []
         start = None
 
@@ -140,6 +184,16 @@ class ECGDataset(Dataset):
         signal: np.ndarray,
         labels: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Вырезает из полного сигнала обучающее окно фиксированной длины.
+
+        Окно выбирается не полностью случайно: функция чаще берёт участки,
+        где есть важные события — QRS, SPIKE или QRS_AFTER_SPIKE.
+
+        Возвращает:
+            signal_win: окно сигнала формы [channels, window]
+            labels_win: окно меток формы [window]
+        """
         if labels.ndim == 1:
             label_length = labels.shape[0]
         elif labels.ndim == 2:
@@ -192,9 +246,10 @@ class ECGDataset(Dataset):
 
         # 40% — специальный режим: QRS_AFTER_SPIKE вместе с предыдущим SPIKE
         if len(qrs_after_segments) > 0 and r < 0.40:
-            q_start, q_end = qrs_after_segments[np.random.randint(len(qrs_after_segments))]
+            q_start, q_end = qrs_after_segments[
+                np.random.randint(len(qrs_after_segments))
+            ]
 
-            # ищем ближайший spike перед этим QRS_AFTER_SPIKE
             candidates = []
             for sp_start, sp_end in spike_segments:
                 dist = q_start - sp_end
@@ -204,7 +259,6 @@ class ECGDataset(Dataset):
             if len(candidates) > 0:
                 sp_start, sp_end, _ = min(candidates, key=lambda x: x[2])
 
-                # хотим, чтобы и spike, и qrs_after были внутри окна
                 left = max(0, sp_start - self.window // 10)
                 right = min(length - 1, q_end + self.window // 10)
 
@@ -217,33 +271,31 @@ class ECGDataset(Dataset):
                     start = q_start - int(self.window * 0.65)
 
             else:
-                # если spike не нашли, просто кладём QRS_AFTER ближе к правой части окна
                 center = np.random.randint(q_start, q_end + 1)
                 start = center - int(self.window * 0.65)
 
-        # 20% — spike
+        # 20% — окно со SPIKE
         elif len(spike_idx) > 0 and r < 0.60:
             center = int(np.random.choice(spike_idx))
             start = center - int(self.window * 0.35)
 
-        # 25% — обычный QRS
+        # 25% — окно с обычным QRS
         elif len(qrs_idx) > 0 and r < 0.85:
             center = int(np.random.choice(qrs_idx))
             shift = np.random.randint(-self.window // 4, self.window // 4 + 1)
             start = center - self.window // 2 + shift
 
-        # 7% — любое событие
+        # 7% — окно с любым событием
         elif len(all_pos_idx) > 0 and r < 0.92:
             center = int(np.random.choice(all_pos_idx))
             shift = np.random.randint(-self.window // 4, self.window // 4 + 1)
             start = center - self.window // 2 + shift
 
-        # 8% — случайный фон/кусок
+        # 8% — случайный участок
         else:
             start = np.random.randint(0, max_start + 1) if max_start > 0 else 0
 
         start = max(0, min(int(start), max_start))
-
         end = start + self.window
 
         signal_win = signal[:, start:end]
@@ -252,6 +304,16 @@ class ECGDataset(Dataset):
         return signal_win, labels_win
 
     def __getitem__(self, idx):
+        """
+        Возвращает один готовый обучающий пример.
+
+        По индексу выбирается sample, загружается полный сигнал,
+        вырезается окно, выполняется очистка NaN/inf и нормализация.
+
+        Возвращает:
+            signal_win: float32 массив формы [channels, window]
+            labels_win: int64 массив формы [window]
+        """
         sample = self.samples[idx]
 
         signal, labels = self._load_item(sample)
