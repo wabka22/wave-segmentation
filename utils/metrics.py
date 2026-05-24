@@ -4,6 +4,13 @@ from sklearn.metrics import f1_score
 
 
 def mask_to_segments(mask, cls):
+    """
+    Преобразует одномерную маску классов в список сегментов заданного класса.
+
+    Например, если mask содержит непрерывный участок класса cls,
+    функция вернёт его границы в формате (start, end),
+    где start включается, а end не включается.
+    """
     segments = []
     in_seg = False
     start = 0
@@ -23,6 +30,13 @@ def mask_to_segments(mask, cls):
 
 
 def iou(seg1, seg2):
+    """
+    Считает IoU для двух сегментов.
+
+    IoU = длина пересечения сегментов / длина их объединения.
+    Значение близко к 1 означает сильное совпадение,
+    значение 0 означает отсутствие пересечения.
+    """
     s1, e1 = seg1
     s2, e2 = seg2
 
@@ -33,6 +47,13 @@ def iou(seg1, seg2):
 
 
 def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10):
+    """
+    Считает количество предсказанных сегментов, совпавших с истинными.
+
+    Сегмент считается найденным, если он пересекается с истинным сегментом
+    с учётом допуска tol или если IoU между сегментами больше iou_thr.
+    Один истинный сегмент может быть сопоставлен только один раз.
+    """
     matched = 0
     used = set()
 
@@ -52,6 +73,17 @@ def match_segments(pred_segs, true_segs, iou_thr=0.3, tol=10):
 
 
 def segment_f1(pred_mask, true_mask, cls):
+    """
+    Считает F1-score на уровне сегментов для одного класса.
+
+    Сначала маски переводятся в списки сегментов.
+    Затем считается количество совпавших сегментов:
+    tp — найденные правильные сегменты,
+    fp — лишние предсказанные сегменты,
+    fn — пропущенные истинные сегменты.
+
+    Возвращает F1-score для заданного класса.
+    """
     pred_segs = mask_to_segments(pred_mask, cls)
     true_segs = mask_to_segments(true_mask, cls)
 
@@ -70,6 +102,14 @@ def segment_f1(pred_mask, true_mask, cls):
 
 
 def merge_small_segments(mask, min_len=4):
+    """
+    Выполняет простую постобработку предсказанной маски.
+
+    Короткие ненулевые сегменты длиной меньше min_len
+    объединяются с предыдущим сегментом, если он есть.
+    Это уменьшает влияние коротких шумовых предсказаний
+    перед расчётом segment F1.
+    """
     mask = mask.copy() if isinstance(mask, np.ndarray) else mask.cpu().numpy()
 
     segments = []
@@ -106,6 +146,20 @@ def merge_small_segments(mask, min_len=4):
 
 
 def evaluate(model, loader, device, min_seg_len=4):
+    """
+    Оценивает качество модели на validation или test DataLoader.
+
+    Считает два типа метрик:
+    1. Point-wise F1 — F1 по отдельным точкам маски.
+    2. Segment F1 — F1 по целым сегментам для классов
+       QRS, SPIKES и QRS_AFTER_SPIKE.
+
+    Для segment F1 перед оценкой постобрабатывается только prediction,
+    истинная разметка остаётся без изменений.
+
+    Возвращает словарь списков segment F1 по классам:
+    {1: [...], 2: [...], 3: [...]}.
+    """
     model.eval()
 
     preds, trues = [], []

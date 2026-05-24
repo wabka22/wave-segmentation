@@ -4,7 +4,19 @@ from config import WINDOW, STEP
 
 
 def create_mask(length, ann):
+    """
+    Создаёт маску классов по разметке аннотаций.
 
+    На вход подаётся длина сигнала и объект ann с полями symbol и sample.
+    Функция проходит по символам разметки и заполняет интервалы маски
+    соответствующими классами.
+
+    Классы:
+        0 — фон
+        1 — P-сегмент
+        2 — N/QRS-сегмент
+        3 — T-сегмент
+    """
     mask = np.zeros(length)
 
     current_class = None
@@ -29,9 +41,25 @@ def create_mask(length, ann):
 
     return mask
 
+
 def split_windows(signal, mask, augment=True, device="cpu"):
+    """
+    Делит полный сигнал и его маску на окна фиксированной длины.
+
+    Сигнал нормализуется по каждому каналу, затем нарезается на окна
+    длиной WINDOW с шагом STEP. Для каждого окна сигнала берётся
+    соответствующее окно маски.
+
+    Если augment=True, к окну сигнала применяется небольшая аугментация:
+    изменение амплитуды и добавление слабого шума.
+
+    Возвращает:
+        X — список окон сигнала, каждое окно имеет форму [channels, WINDOW]
+        Y — список окон маски, каждое окно имеет форму [WINDOW]
+    """
     if not isinstance(signal, torch.Tensor):
         signal = torch.from_numpy(signal).float()
+
     signal = signal.to(device)
 
     signal = (signal - signal.mean(dim=1, keepdim=True)) / (

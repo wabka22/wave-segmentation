@@ -154,16 +154,6 @@ def probs_to_mask(
 
     return pred_mask
 
-def postprocess_mask(mask: np.ndarray) -> np.ndarray:
-    mask = remove_small_segments(mask, cls=1, min_len=5)
-    mask = remove_small_segments(mask, cls=2, min_len=1)
-    mask = remove_small_segments(mask, cls=3, min_len=8)
-
-    mask = clip_long_segments(mask, cls=1, max_len=60)
-    mask = clip_long_segments(mask, cls=2, max_len=40)
-    mask = clip_long_segments(mask, cls=3, max_len=100)
-
-    return mask
 
 def keep_qrs_after_only_near_spike(
     mask: np.ndarray,
@@ -506,7 +496,6 @@ def main():
         qrs_search_after=260,
     )
 
-    # pred_mask = postprocess_mask(pred_mask)
     
     print(
         f"Prediction: "
